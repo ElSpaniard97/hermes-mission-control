@@ -194,12 +194,6 @@ export interface RuntimeMeta {
 
 const RUNTIME_META: Record<RuntimeId, RuntimeMeta> = {
   hermes: {
-    name: 'Hermes',
-    description: 'Multi-agent orchestration with gateway, sessions, and memory.',
-    authRequired: false,
-    authHint: '',
-  },
-  hermes: {
     name: 'Hermes Agent',
     description: 'Self-improving AI agent with learning loop, skills, and multi-platform messaging.',
     authRequired: true,
@@ -247,51 +241,6 @@ function pruneJobs() {
 // Detection
 // ---------------------------------------------------------------------------
 
-function detectHermes(): RuntimeStatus {
-  const meta = RUNTIME_META.hermes
-  let installed = false
-  let version: string | null = null
-  let running = false
-
-  // Check config file existence
-  if (config.hermesConfigPath && existsSync(config.hermesConfigPath)) {
-    installed = true
-  }
-
-  // Try to get version
-  try {
-    const result = require('node:child_process').spawnSync(
-      config.hermesBin || 'hermes',
-      ['--version'],
-      { stdio: 'pipe', timeout: 3000 }
-    )
-    if (result.status === 0) {
-      installed = true
-      version = (result.stdout?.toString() || '').trim() || null
-    }
-  } catch {
-    // binary not found
-  }
-
-  // Check if gateway port is listening (simple sync check)
-  try {
-    const net = require('node:net')
-    const socket = new net.Socket()
-    socket.setTimeout(500)
-    new Promise<boolean>((resolve) => {
-      socket.once('connect', () => { socket.destroy(); resolve(true) })
-      socket.once('error', () => { socket.destroy(); resolve(false) })
-      socket.once('timeout', () => { socket.destroy(); resolve(false) })
-      socket.connect(config.gatewayPort, config.gatewayHost)
-    })
-    // We can't await here synchronously, so just check config existence for "running"
-    running = installed
-  } catch {
-    // ignore
-  }
-
-  return { id: 'hermes', ...meta, installed, version, running, authenticated: true }
-}
 
 function detectHermes(): RuntimeStatus {
   const meta = RUNTIME_META.hermes
@@ -482,7 +431,7 @@ function detectOpenCode(): RuntimeStatus {
 
 const DETECTORS: Record<RuntimeId, () => RuntimeStatus> = {
   hermes: detectHermes,
-  hermes: detectHermes,
+
   claude: detectClaude,
   codex: detectCodex,
   opencode: detectOpenCode,
@@ -527,7 +476,6 @@ export function startInstall(runtime: RuntimeId, mode: DeploymentMode): InstallJ
 
   // Local install — run in background
   const INSTALL_FNS: Record<RuntimeId, (job: InstallJob) => Promise<void>> = {
-    hermes: installHermesLocal,
     hermes: installHermesLocal,
     claude: installClaudeLocal,
     codex: installCodexLocal,
@@ -588,60 +536,6 @@ async function runInstallCmd(cmd: string, args: string[], job: InstallJob): Prom
   }
 }
 
-async function installHermesLocal(job: InstallJob): Promise<void> {
-  job.output += '> Installing Hermes...\n'
-  const env = {
-    ...getInstallEnv(),
-    NONINTERACTIVE: '1',
-    CI: '1',
-  }
-  try {
-    // Download, review, then execute from secure temp dir
-    const reviewed = await downloadAndReviewScript('https://get.hermes.dev', job, env)
-    if (!reviewed) {
-      job.status = 'failed'
-      job.error = 'Installer download or security review failed'
-      job.finishedAt = Date.now()
-      return
-    }
-
-    const result = await runCommand('bash', [reviewed.scriptPath, '--non-interactive'], {
-      timeoutMs: 300_000, env,
-      onData: (chunk) => { job.output += chunk },
-    })
-
-    rmSync(reviewed.tempDir, { recursive: true, force: true })
-
-    // Verify the binary actually exists after install
-    const { installed: verified } = detectBinary([config.hermesBin || 'hermes'])
-
-    if (result.code === 0 && verified) {
-      job.output += '\n> Hermes installed. Running initial setup...\n'
-      try {
-        const onboard = await runCommand('hermes', ['onboard', '--non-interactive'], { timeoutMs: 60_000, env })
-        if (onboard.stdout) job.output += onboard.stdout + '\n'
-        if (onboard.stderr) job.output += onboard.stderr + '\n'
-      } catch {
-        job.output += '> Note: "hermes onboard" skipped (run manually if needed).\n'
-      }
-      job.status = 'success'
-      job.output += '\n> Hermes installed successfully.\n'
-    } else if (result.code === 0 && !verified) {
-      job.status = 'failed'
-      job.error = 'Install command succeeded but hermes binary was not found. curl may not be installed.'
-      job.output += '\n> Install command ran but hermes was not detected. Is curl installed?\n'
-    } else {
-      job.status = 'failed'
-      job.error = `Install exited with code ${result.code}`
-      job.output += `\n> Install failed (exit code ${result.code}).\n`
-    }
-  } catch (err: any) {
-    job.status = 'failed'
-    job.error = err?.message || 'Unknown error'
-    job.output += `\n> Error: ${job.error}\n`
-  }
-  job.finishedAt = Date.now()
-}
 
 async function installHermesLocal(job: InstallJob): Promise<void> {
   job.output += '> Installing Hermes Agent via official installer...\n'

@@ -307,7 +307,7 @@ export function AgentRuntimesSection({ showFeedback }: Props) {
           onComplete={() => {
             setSetupRuntime(null)
             fetchRuntimes()
-            const names: Record<string, string> = { hermes: 'Hermes', hermes: 'Hermes', claude: 'Claude Code', codex: 'Codex CLI', opencode: 'OpenCode' }
+            const names: Record<string, string> = { hermes: 'Hermes', claude: 'Claude Code', codex: 'Codex CLI', opencode: 'OpenCode' }
             showFeedback(true, `${names[setupRuntime] || setupRuntime} setup complete`)
           }}
         />
