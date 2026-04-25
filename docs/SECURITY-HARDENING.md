@@ -1,6 +1,6 @@
 # Security Hardening Guide
 
-Comprehensive security hardening guide for Mission Control and OpenClaw Gateway deployments.
+Comprehensive security hardening guide for Mission Control and Hermes Gateway deployments.
 
 ## Quick Assessment
 
@@ -177,22 +177,22 @@ MC_RETAIN_GATEWAY_SESSIONS_DAYS=90 # Gateway session history
 
 ---
 
-## OpenClaw Gateway Hardening
+## Hermes Gateway Hardening
 
-Mission Control acts as the mothership for your OpenClaw fleet. The installer automatically checks and repairs common OpenClaw configuration issues.
+Mission Control acts as the mothership for your Hermes fleet. The installer automatically checks and repairs common Hermes configuration issues.
 
 ### 1. Network Security
 
 - **Never expose the gateway publicly.** It runs on port 18789 by default.
-- **Bind to localhost:** Set `gateway.bind: "loopback"` in `openclaw.json`.
+- **Bind to localhost:** Set `gateway.bind: "loopback"` in `config.yaml`.
 - **Use SSH tunneling or Tailscale** for remote access.
 - **Docker users:** Be aware that Docker can bypass UFW rules. Use `DOCKER-USER` chain rules.
 
 ### 2. Authentication
 
 - **Always enable gateway auth** with a strong random token.
-- Generate: `openclaw doctor --generate-gateway-token`
-- Store in `OPENCLAW_GATEWAY_TOKEN` env var (never in `NEXT_PUBLIC_*` variables).
+- Generate: `hermes doctor --generate-gateway-token`
+- Store in `HERMES_GATEWAY_TOKEN` env var (never in `NEXT_PUBLIC_*` variables).
 - Rotate regularly.
 
 ### 3. Hardened Gateway Configuration
@@ -223,9 +223,9 @@ Mission Control acts as the mothership for your OpenClaw fleet. The installer au
 ### 4. File Permissions
 
 ```bash
-chmod 700 ~/.openclaw
-chmod 600 ~/.openclaw/openclaw.json
-chmod 600 ~/.openclaw/credentials/*
+chmod 700 ~/.hermes
+chmod 600 ~/.hermes/config.yaml
+chmod 600 ~/.hermes/credentials/*
 ```
 
 ### 5. Tool Security
@@ -243,7 +243,7 @@ chmod 600 ~/.openclaw/credentials/*
 
 ### 7. Known CVEs
 
-Keep OpenClaw updated. Notable past vulnerabilities:
+Keep Hermes updated. Notable past vulnerabilities:
 
 | CVE | Severity | Description | Fixed In |
 |-----|----------|-------------|----------|
@@ -266,14 +266,14 @@ Internet
   |
 [Mission Control :3000] ---- [SQLite .data/]
   |
-[OpenClaw Gateway :18789 (localhost only)]
+[Hermes Gateway :18789 (localhost only)]
   |
 [Agent Workspaces]
 ```
 
 - Reverse proxy handles TLS termination, rate limiting, and access control
 - Mission Control listens on localhost or a private network
-- OpenClaw Gateway is bound to loopback only
+- Hermes Gateway is bound to loopback only
 - Agent workspaces are isolated per-agent directories
 
 ---

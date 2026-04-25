@@ -10,8 +10,8 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/command', () => ({
   runCommand: runCommandMock,
-  runOpenClaw: vi.fn(),
-  runClawdbot: vi.fn(),
+  runHermes: vi.fn(),
+  runHermesbot: vi.fn(),
 }))
 
 vi.mock('@/lib/config', () => ({

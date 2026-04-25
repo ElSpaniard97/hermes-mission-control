@@ -3,7 +3,7 @@ import net from 'node:net'
 import os from 'node:os'
 import { existsSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { runCommand, runOpenClaw, runClawdbot } from '@/lib/command'
+import { runCommand, runHermes, runHermesbot } from '@/lib/command'
 import { config } from '@/lib/config'
 import { getDatabase } from '@/lib/db'
 import { getAllGatewaySessions, getAgentLiveStatuses } from '@/lib/sessions'
@@ -311,7 +311,7 @@ async function getSystemStatus(workspaceId: number) {
   }
 
   try {
-    // ClawdBot processes
+    // HermesBot processes
     const { stdout: processOutput } = await runCommand(
       'ps',
       ['-A', '-o', 'pid,comm,args'],
@@ -327,7 +327,7 @@ async function getSystemStatus(workspaceId: number) {
           command: parts.slice(2).join(' ')
         }
       })
-      .filter((proc) => /clawdbot|openclaw/i.test(proc.command))
+      .filter((proc) => /hermesbot|hermes/i.test(proc.command))
     status.processes = processes
   } catch (error) {
     logger.error({ err: error }, 'Error getting process info')
@@ -389,7 +389,7 @@ async function getGatewayStatus() {
     })
     const match = stdout
       .split('\n')
-      .find((line) => /clawdbot-gateway|openclaw-gateway|openclaw.*gateway/i.test(line))
+      .find((line) => /hermesbot-gateway|hermes-gateway|hermes.*gateway/i.test(line))
     if (match) {
       const parts = match.trim().split(/\s+/)
       gatewayStatus.running = true
@@ -406,11 +406,11 @@ async function getGatewayStatus() {
   }
 
   try {
-    const { stdout } = await runOpenClaw(['--version'], { timeoutMs: 3000 })
+    const { stdout } = await runHermes(['--version'], { timeoutMs: 3000 })
     gatewayStatus.version = stdout.trim()
   } catch (error) {
     try {
-      const { stdout } = await runClawdbot(['--version'], { timeoutMs: 3000 })
+      const { stdout } = await runHermesbot(['--version'], { timeoutMs: 3000 })
       gatewayStatus.version = stdout.trim()
     } catch (innerError) {
       gatewayStatus.version = 'unknown'
@@ -627,9 +627,9 @@ async function getCapabilities(request?: NextRequest) {
 
   const gateway = gatewayReachable || await isPortOpen(config.gatewayHost, config.gatewayPort)
 
-  const openclawHome = Boolean(
-    (config.openclawStateDir && existsSync(config.openclawStateDir)) ||
-    (config.openclawConfigPath && existsSync(config.openclawConfigPath))
+  const hermesHome = Boolean(
+    (config.hermesStateDir && existsSync(config.hermesStateDir)) ||
+    (config.hermesConfigPath && existsSync(config.hermesConfigPath))
   )
 
   const claudeProjectsPath = path.join(config.claudeHome, 'projects')
@@ -690,9 +690,9 @@ async function getCapabilities(request?: NextRequest) {
     } catch { /* ignore */ }
   }
 
-  // Auto-register MC as default dashboard when gateway + openclaw home detected
+  // Auto-register MC as default dashboard when gateway + hermes home detected
   let dashboardRegistration: { registered: boolean; alreadySet: boolean } | null = null
-  if (gateway && openclawHome) {
+  if (gateway && hermesHome) {
     try {
       let mcUrl = process.env.MC_BASE_URL || ''
       if (!mcUrl && request) {
@@ -710,7 +710,7 @@ async function getCapabilities(request?: NextRequest) {
 
   const isDocker = existsSync('/.dockerenv')
 
-  return { gateway, openclawHome, claudeHome, claudeSessions, hermesInstalled, hermesSessions, subscription, subscriptions, processUser, interfaceMode, dashboardRegistration, isDocker }
+  return { gateway, hermesHome, claudeHome, claudeSessions, hermesInstalled, hermesSessions, subscription, subscriptions, processUser, interfaceMode, dashboardRegistration, isDocker }
 }
 
 function isPortOpen(host: string, port: number): Promise<boolean> {

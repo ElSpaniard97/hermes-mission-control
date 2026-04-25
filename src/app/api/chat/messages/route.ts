@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, db_helpers, Message } from '@/lib/db'
-import { runOpenClaw } from '@/lib/command'
+import { runHermes } from '@/lib/command'
 import { getAllGatewaySessions } from '@/lib/sessions'
 import { eventBus } from '@/lib/event-bus'
 import { requireRole } from '@/lib/auth'
 import { logger } from '@/lib/logger'
 import { scanForInjection, sanitizeForPrompt } from '@/lib/injection-guard'
-import { callOpenClawGateway } from '@/lib/openclaw-gateway'
+import { callHermesGateway } from '@/lib/hermes-gateway'
 import { resolveCoordinatorDeliveryTarget } from '@/lib/coordinator-routing'
 
 type ForwardInfo = {
@@ -457,15 +457,15 @@ export async function POST(request: NextRequest) {
             (s) =>
               s.agent.toLowerCase() === String(to).toLowerCase() ||
               s.agent.toLowerCase() === coordinatorResolution.deliveryName.toLowerCase() ||
-              s.agent.toLowerCase() === String(coordinatorResolution.openclawAgentId || '').toLowerCase()
+              s.agent.toLowerCase() === String(coordinatorResolution.hermesAgentId || '').toLowerCase()
           )
           sessionKey = match?.key || match?.sessionId || null
         }
 
-        // Prefer configured openclawId when present, fallback to normalized name
-        let openclawAgentId: string | null = coordinatorResolution.openclawAgentId
+        // Prefer configured hermesId when present, fallback to normalized name
+        let hermesAgentId: string | null = coordinatorResolution.hermesAgentId
 
-        if (!sessionKey && !openclawAgentId) {
+        if (!sessionKey && !hermesAgentId) {
           forwardInfo.reason = 'no_active_session'
 
           // For coordinator messages, emit an immediate visible status reply
@@ -490,7 +490,7 @@ export async function POST(request: NextRequest) {
             const idempotencyKey = `mc-${messageId}-${Date.now()}`
 
             if (sessionKey) {
-              const acceptedPayload = await callOpenClawGateway<any>(
+              const acceptedPayload = await callHermesGateway<any>(
                 'chat.send',
                 {
                   sessionKey,
@@ -513,9 +513,9 @@ export async function POST(request: NextRequest) {
                 idempotencyKey,
                 deliver: false,
               }
-              invokeParams.agentId = openclawAgentId
+              invokeParams.agentId = hermesAgentId
 
-              const invokeResult = await runOpenClaw(
+              const invokeResult = await runHermes(
                 [
                   'gateway',
                   'call',
@@ -530,19 +530,19 @@ export async function POST(request: NextRequest) {
               )
               const acceptedPayload = parseGatewayJson(invokeResult.stdout)
               forwardInfo.delivered = true
-              forwardInfo.session = openclawAgentId || undefined
+              forwardInfo.session = hermesAgentId || undefined
               if (typeof acceptedPayload?.runId === 'string' && acceptedPayload.runId) {
                 forwardInfo.runId = acceptedPayload.runId
               }
             }
           } catch (err) {
-            // OpenClaw may return accepted JSON on stdout but still emit a late stderr warning.
+            // Hermes may return accepted JSON on stdout but still emit a late stderr warning.
             // Treat accepted runs as successful delivery.
             const maybeStdout = String((err as any)?.stdout || '')
             const acceptedPayload = parseGatewayJson(maybeStdout)
             if (maybeStdout.includes('"status": "accepted"') || maybeStdout.includes('"status":"accepted"')) {
               forwardInfo.delivered = true
-              forwardInfo.session = sessionKey || openclawAgentId || undefined
+              forwardInfo.session = sessionKey || hermesAgentId || undefined
               if (typeof acceptedPayload?.runId === 'string' && acceptedPayload.runId) {
                 forwardInfo.runId = acceptedPayload.runId
               }
@@ -594,7 +594,7 @@ export async function POST(request: NextRequest) {
             // Best effort: wait briefly and surface completion/error feedback.
             if (forwardInfo.runId) {
               try {
-                const waitResult = await runOpenClaw(
+                const waitResult = await runHermes(
                   [
                     'gateway',
                     'call',

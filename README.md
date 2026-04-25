@@ -48,8 +48,8 @@ Manage AI agent fleets, dispatch tasks, track costs, and coordinate multi-agent 
 <tr><td><b>Zero external deps</b></td><td>SQLite database, single <code>pnpm start</code> to run. No Redis, no Postgres, no Docker required.</td></tr>
 <tr><td><b>Role-based access</b></td><td>Viewer, operator, and admin roles with session + API key auth. Google Sign-In with admin approval workflow.</td></tr>
 <tr><td><b>Quality gates</b></td><td>Built-in Aegis review system that blocks task completion without sign-off.</td></tr>
-<tr><td><b>Skills Hub</b></td><td>Browse, install, and security-scan agent skills from ClawdHub and skills.sh registries. Bidirectional disk ↔ DB sync.</td></tr>
-<tr><td><b>Multi-gateway</b></td><td>Connect to multiple agent gateways simultaneously. Framework adapters for OpenClaw, CrewAI, LangGraph, AutoGen, Claude SDK.</td></tr>
+<tr><td><b>Skills Hub</b></td><td>Browse, install, and security-scan agent skills from HermesHub and skills.sh registries. Bidirectional disk ↔ DB sync.</td></tr>
+<tr><td><b>Multi-gateway</b></td><td>Connect to multiple agent gateways simultaneously. Framework adapters for Hermes, CrewAI, LangGraph, AutoGen, Claude SDK.</td></tr>
 <tr><td><b>Recurring tasks</b></td><td>Natural language scheduling ("every morning at 9am") with cron-based template spawning.</td></tr>
 <tr><td><b>Claude Code bridge</b></td><td>Read-only integration surfaces Claude Code team tasks, sessions, and configs on the dashboard.</td></tr>
 <tr><td><b>Agent eval & security</b></td><td>Four-layer eval framework, trust scoring, secret detection, MCP call auditing, and hook profiles (minimal/standard/strict).</td></tr>
@@ -223,7 +223,7 @@ Explore agent knowledge through the Memory Browser, filesystem-backed memory tre
 
 ### Skills Hub
 
-Browse, install, and manage agent skills from local directories and external registries (ClawdHub, skills.sh). Built-in security scanner checks for prompt injection, credential leaks, data exfiltration, obfuscated content, and dangerous shell commands before installation. Supports 5 skill roots across `~/.agents/skills`, `~/.codex/skills`, project-local directories, and `~/.openclaw/skills`.
+Browse, install, and manage agent skills from local directories and external registries (HermesHub, skills.sh). Built-in security scanner checks for prompt injection, credential leaks, data exfiltration, obfuscated content, and dangerous shell commands before installation. Supports 5 skill roots across `~/.agents/skills`, `~/.codex/skills`, project-local directories, and `~/.hermes/skills`.
 
 ### Cost Tracking
 
@@ -259,7 +259,7 @@ Outbound webhooks with delivery history, retry with exponential backoff, circuit
 
 ### Framework Adapters
 
-Built-in adapter layer for multi-agent registration: OpenClaw, CrewAI, LangGraph, AutoGen, Claude SDK, and generic fallback. Each adapter normalizes registration, heartbeats, and task reporting to a common interface.
+Built-in adapter layer for multi-agent registration: Hermes, CrewAI, LangGraph, AutoGen, Claude SDK, and generic fallback. Each adapter normalizes registration, heartbeats, and task reporting to a common interface.
 
 ### Workspace Management
 
@@ -356,9 +356,9 @@ See [`.env.example`](.env.example) for the complete list. Key variables:
 | `AUTH_USER` | No | Initial admin username (default: `admin`) |
 | `AUTH_PASS` | No | Initial admin password (auto-generated if unset) |
 | `API_KEY` | No | API key for headless access (auto-generated if unset) |
-| `OPENCLAW_CONFIG_PATH` | No* | Absolute path to `openclaw.json` |
-| `OPENCLAW_STATE_DIR` | No* | Exact path to the OpenClaw state directory (default: `~/.openclaw`). Preferred over `OPENCLAW_HOME` — avoids double-nesting |
-| `OPENCLAW_HOME` | No* | Legacy alias — treated as *parent* home dir (`.openclaw` is appended). Use `OPENCLAW_STATE_DIR` when it already points to the state dir |
+| `HERMES_CONFIG_PATH` | No* | Absolute path to `config.yaml` |
+| `HERMES_STATE_DIR` | No* | Exact path to the Hermes state directory (default: `~/.hermes`). Preferred over `HERMES_HOME` — avoids double-nesting |
+| `HERMES_HOME` | No* | Legacy alias — treated as *parent* home dir (`.hermes` is appended). Use `HERMES_STATE_DIR` when it already points to the state dir |
 | `MISSION_CONTROL_DATA_DIR` | No | Directory for all MC data files (DB, tokens, etc.). Use an absolute path with the standalone server to survive rebuilds. |
 | `MC_CLAUDE_HOME` | No | Path to `~/.claude` directory |
 | `MC_ALLOWED_HOSTS` | No | Host allowlist for production |
@@ -392,7 +392,7 @@ bash scripts/security-audit.sh     # Security configuration audit
 | Problem | Fix |
 |---------|-----|
 | "Internal server error" on login | `pnpm rebuild better-sqlite3` (Node version mismatch) |
-| Docker: gateway not connecting | Set `OPENCLAW_GATEWAY_HOST=host.docker.internal` in `.env` |
+| Docker: gateway not connecting | Set `HERMES_GATEWAY_HOST=host.docker.internal` in `.env` |
 | Docker: browser WebSocket fails | Leave `NEXT_PUBLIC_GATEWAY_HOST` empty (auto-detected) or set to a browser-reachable hostname |
 | 404 on all pages | Clear Next.js cache: `rm -rf .next && pnpm dev` |
 | `AUTH_PASS` with `#` ignored | Quote it: `AUTH_PASS="my#pass"` or use `AUTH_PASS_B64` |

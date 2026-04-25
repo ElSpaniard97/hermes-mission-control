@@ -1,6 +1,6 @@
 import { getDatabase, db_helpers } from './db'
-import { runOpenClaw } from './command'
-import { callOpenClawGateway } from './openclaw-gateway'
+import { runHermes } from './command'
+import { callHermesGateway } from './hermes-gateway'
 import { eventBus } from './event-bus'
 import { logger } from './logger'
 import { config } from './config'
@@ -45,7 +45,7 @@ interface DispatchableTask {
 /**
  * Return an explicit gateway model override from Mission Control agent config.
  *
- * By default, task dispatch should not inject a model override; the OpenClaw
+ * By default, task dispatch should not inject a model override; the Hermes
  * agent should use its own configured default model. A Mission Control agent
  * may still opt into an override via agent.config.dispatchModel.
  */
@@ -60,12 +60,12 @@ export function resolveTaskDispatchModelOverride(task: Pick<DispatchableTask, 'a
 }
 
 /** Extract the gateway agent identifier from the agent's config JSON.
- *  Falls back to agent_name (display name) if openclawId is not set. */
+ *  Falls back to agent_name (display name) if hermesId is not set. */
 function resolveGatewayAgentId(task: DispatchableTask): string {
   if (task.agent_config) {
     try {
       const cfg = JSON.parse(task.agent_config)
-      if (typeof cfg.openclawId === 'string' && cfg.openclawId) return cfg.openclawId
+      if (typeof cfg.hermesId === 'string' && cfg.hermesId) return cfg.hermesId
     } catch { /* ignore */ }
   }
   return task.agent_name
@@ -125,7 +125,7 @@ function parseAgentResponse(stdout: string): AgentResponseParsed {
       : typeof parsed?.session_id === 'string' ? parsed.session_id
       : null
 
-    // OpenClaw agent --json returns { payloads: [{ text: "..." }] }
+    // Hermes agent --json returns { payloads: [{ text: "..." }] }
     if (parsed?.payloads?.[0]?.text) {
       return { text: parsed.payloads[0].text, sessionId }
     }
@@ -149,8 +149,8 @@ function getAnthropicApiKey(): string | null {
 }
 
 function isGatewayAvailable(): boolean {
-  // Gateway is available if OpenClaw is installed OR a gateway is registered in the DB
-  if (config.openclawHome) return true
+  // Gateway is available if Hermes is installed OR a gateway is registered in the DB
+  if (config.hermesHome) return true
   try {
     const db = getDatabase()
     const row = db.prepare('SELECT COUNT(*) as c FROM gateways').get() as { c: number } | undefined
@@ -312,7 +312,7 @@ function resolveGatewayAgentIdForReview(task: ReviewableTask): string {
   if (task.agent_config) {
     try {
       const cfg = JSON.parse(task.agent_config)
-      if (typeof cfg.openclawId === 'string' && cfg.openclawId) return cfg.openclawId
+      if (typeof cfg.hermesId === 'string' && cfg.hermesId) return cfg.hermesId
     } catch { /* ignore */ }
   }
   return task.assigned_to || 'jarv'
@@ -423,7 +423,7 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
           idempotencyKey: `aegis-review-${task.id}-${Date.now()}`,
           deliver: false,
         }
-        const finalResult = await runOpenClaw(
+        const finalResult = await runHermes(
           ['gateway', 'call', 'agent', '--expect-final', '--timeout', '120000', '--params', JSON.stringify(invokeParams), '--json'],
           { timeoutMs: 125_000 }
         )
@@ -703,7 +703,7 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
       } else if (targetSession) {
         // Dispatch to a specific existing session via chat.send
         logger.info({ taskId: task.id, targetSession, agent: task.agent_name }, 'Dispatching task to targeted session')
-        const sendResult = await callOpenClawGateway<any>(
+        const sendResult = await callHermesGateway<any>(
           'chat.send',
           {
             sessionKey: targetSession,
@@ -739,7 +739,7 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
         // Use --expect-final to block until the agent completes and returns the full
         // response payload (result.payloads[0].text). The two-step agent → agent.wait
         // pattern only returns lifecycle metadata and never includes the agent's text.
-        const finalResult = await runOpenClaw(
+        const finalResult = await runHermes(
           ['gateway', 'call', 'agent', '--expect-final', '--timeout', '120000', '--params', JSON.stringify(invokeParams), '--json'],
           { timeoutMs: 125_000 }
         )

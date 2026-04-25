@@ -57,7 +57,7 @@ describe('parseJsonRelaxed', () => {
 
   it('parses mixed quoted and unquoted keys', () => {
     const raw = `{
-      // OpenClaw-style config
+      // Hermes-style config
       "gateway": { port: 18789 },
       agents: { "default": "hermes" },
     }`

@@ -9,7 +9,7 @@ export interface CoordinatorAgentRecord {
 export interface ResolvedCoordinatorTarget {
   deliveryName: string
   sessionKey: string | null
-  openclawAgentId: string | null
+  hermesAgentId: string | null
   resolvedBy: 'direct' | 'configured' | 'default' | 'main_session' | 'fallback'
 }
 
@@ -17,7 +17,7 @@ function normalizeName(value: string | null | undefined): string {
   return String(value || '').trim().toLowerCase()
 }
 
-function normalizeOpenClawId(value: string | null | undefined): string {
+function normalizeHermesId(value: string | null | undefined): string {
   return normalizeName(value).replace(/\s+/g, '-')
 }
 
@@ -31,10 +31,10 @@ function parseConfig(raw: string | null | undefined): Record<string, unknown> {
   }
 }
 
-function getConfigOpenClawId(agent: CoordinatorAgentRecord): string | null {
+function getConfigHermesId(agent: CoordinatorAgentRecord): string | null {
   const parsed = parseConfig(agent.config)
-  return typeof parsed.openclawId === 'string' && parsed.openclawId.trim()
-    ? parsed.openclawId.trim()
+  return typeof parsed.hermesId === 'string' && parsed.hermesId.trim()
+    ? parsed.hermesId.trim()
     : null
 }
 
@@ -48,10 +48,10 @@ function findSessionForAgent(
   sessions: GatewaySession[],
 ): GatewaySession | undefined {
   const name = normalizeName(agent.name)
-  const openclawId = normalizeOpenClawId(getConfigOpenClawId(agent) || agent.name)
+  const hermesId = normalizeHermesId(getConfigHermesId(agent) || agent.name)
   return sessions.find((session) => {
     const sessionAgent = normalizeName(session.agent)
-    return sessionAgent === name || sessionAgent === openclawId
+    return sessionAgent === name || sessionAgent === hermesId
   })
 }
 
@@ -65,10 +65,10 @@ function resolveConfiguredCoordinatorTarget(
 
   return allAgents.find((agent) => {
     const byName = normalizeName(agent.name) === wanted
-    const byOpenClawId = normalizeOpenClawId(getConfigOpenClawId(agent) || agent.name) === wanted
+    const byHermesId = normalizeHermesId(getConfigHermesId(agent) || agent.name) === wanted
     const session = findSessionForAgent(agent, sessions)
     const bySessionAgent = session ? normalizeName(session.agent) === wanted : false
-    return byName || byOpenClawId || bySessionAgent
+    return byName || byHermesId || bySessionAgent
   }) || null
 }
 
@@ -89,7 +89,7 @@ export function resolveCoordinatorDeliveryTarget(params: {
     agent: CoordinatorAgentRecord,
     resolvedBy: ResolvedCoordinatorTarget['resolvedBy'],
   ): ResolvedCoordinatorTarget => {
-    const openclawAgentId = getConfigOpenClawId(agent) || normalizeOpenClawId(agent.name)
+    const hermesAgentId = getConfigHermesId(agent) || normalizeHermesId(agent.name)
     const sessionKey =
       explicitSessionKey ||
       agent.session_key?.trim() ||
@@ -99,7 +99,7 @@ export function resolveCoordinatorDeliveryTarget(params: {
     return {
       deliveryName: agent.name,
       sessionKey,
-      openclawAgentId,
+      hermesAgentId,
       resolvedBy,
     }
   }
@@ -121,18 +121,18 @@ export function resolveCoordinatorDeliveryTarget(params: {
     const mainSession = params.sessions.find((session) => /:main$/i.test(session.key))
     if (mainSession) {
       const matchingAgent = params.allAgents.find((agent) => {
-        const openclawId = normalizeOpenClawId(getConfigOpenClawId(agent) || agent.name)
+        const hermesId = normalizeHermesId(getConfigHermesId(agent) || agent.name)
         const agentName = normalizeName(agent.name)
         const sessionAgent = normalizeName(mainSession.agent)
-        return sessionAgent === agentName || sessionAgent === openclawId
+        return sessionAgent === agentName || sessionAgent === hermesId
       })
 
       return {
         deliveryName: matchingAgent?.name || mainSession.agent,
         sessionKey: explicitSessionKey || mainSession.key || null,
-        openclawAgentId:
-          getConfigOpenClawId(matchingAgent || { name: mainSession.agent }) ||
-          normalizeOpenClawId(mainSession.agent),
+        hermesAgentId:
+          getConfigHermesId(matchingAgent || { name: mainSession.agent }) ||
+          normalizeHermesId(mainSession.agent),
         resolvedBy: 'main_session',
       }
     }
@@ -149,7 +149,7 @@ export function resolveCoordinatorDeliveryTarget(params: {
   return {
     deliveryName: params.to,
     sessionKey: explicitSessionKey,
-    openclawAgentId: normalizeOpenClawId(params.to),
+    hermesAgentId: normalizeHermesId(params.to),
     resolvedBy: 'fallback',
   }
 }

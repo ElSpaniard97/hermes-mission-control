@@ -35,7 +35,7 @@ export interface ScanResult {
   categories: {
     credentials: Category
     network: Category
-    openclaw: Category
+    hermes: Category
     runtime: Category
     os: Category
   }
@@ -78,11 +78,11 @@ const INSECURE_PASSWORDS = new Set([
 export function runSecurityScan(): ScanResult {
   const credentials = scanCredentials()
   const network = scanNetwork()
-  const openclaw = scanOpenClaw()
+  const hermes = scanHermes()
   const runtime = scanRuntime()
   const osLevel = scanOS()
 
-  const categories = { credentials, network, openclaw, runtime, os: osLevel }
+  const categories = { credentials, network, hermes, runtime, os: osLevel }
   const allChecks = Object.values(categories).flatMap(c => c.checks)
 
   const weightedMax = allChecks.reduce((s, c) => s + SEVERITY_WEIGHT[c.severity ?? 'medium'], 0)
@@ -249,7 +249,7 @@ function scanNetwork(): Category {
     name: 'Gateway bound to localhost',
     status: gwHost === '127.0.0.1' || gwHost === 'localhost' ? 'pass' : 'fail',
     detail: `Gateway host is ${gwHost}`,
-    fix: gwHost !== '127.0.0.1' && gwHost !== 'localhost' ? 'Set OPENCLAW_GATEWAY_HOST=127.0.0.1 — never expose the gateway publicly' : '',
+    fix: gwHost !== '127.0.0.1' && gwHost !== 'localhost' ? 'Set HERMES_GATEWAY_HOST=127.0.0.1 — never expose the gateway publicly' : '',
     severity: 'critical',
   })
 
@@ -257,23 +257,23 @@ function scanNetwork(): Category {
 }
 
 // ---------------------------------------------------------------------------
-// Category: OpenClaw
+// Category: Hermes
 // ---------------------------------------------------------------------------
 
-function scanOpenClaw(): Category {
+function scanHermes(): Category {
   const checks: Check[] = []
-  const configPath = config.openclawConfigPath
+  const configPath = config.hermesConfigPath
 
   if (!configPath || !existsSync(configPath)) {
     const gatewayOptional = process.env.NEXT_PUBLIC_GATEWAY_OPTIONAL === 'true'
     checks.push({
       id: 'config_found',
-      name: 'OpenClaw config found',
+      name: 'Hermes config found',
       status: gatewayOptional ? 'pass' : 'warn',
       detail: gatewayOptional
-        ? 'OpenClaw not configured (standalone mode — gateway optional)'
-        : 'openclaw.json not found — OpenClaw checks skipped',
-      fix: gatewayOptional ? '' : 'Set OPENCLAW_HOME or OPENCLAW_CONFIG_PATH in .env',
+        ? 'Hermes not configured (standalone mode — gateway optional)'
+        : 'config.yaml not found — Hermes checks skipped',
+      fix: gatewayOptional ? '' : 'Set HERMES_HOME or HERMES_CONFIG_PATH in .env',
       severity: 'low',
     })
     return scoreCategory(checks)
@@ -285,10 +285,10 @@ function scanOpenClaw(): Category {
   } catch (err) {
     checks.push({
       id: 'config_valid',
-      name: 'OpenClaw config valid',
+      name: 'Hermes config valid',
       status: 'fail',
-      detail: 'openclaw.json could not be parsed',
-      fix: 'Check openclaw.json for syntax errors',
+      detail: 'config.yaml could not be parsed',
+      fix: 'Check config.yaml for syntax errors',
       severity: 'high',
     })
     return scoreCategory(checks)
@@ -301,7 +301,7 @@ function scanOpenClaw(): Category {
       id: 'config_permissions',
       name: 'Config file permissions',
       status: mode === '600' ? 'pass' : 'warn',
-      detail: `openclaw.json permissions are ${mode}`,
+      detail: `config.yaml permissions are ${mode}`,
       fix: mode !== '600' ? `Run: chmod 600 ${configPath}` : '',
       severity: 'medium',
       fixSafety: 'safe',

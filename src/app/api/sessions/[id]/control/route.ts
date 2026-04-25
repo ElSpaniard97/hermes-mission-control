@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth'
-import { callOpenClawGateway } from '@/lib/openclaw-gateway'
+import { callHermesGateway } from '@/lib/hermes-gateway'
 import { db_helpers } from '@/lib/db'
 import { mutationLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
@@ -38,12 +38,12 @@ export async function POST(
 
     let result: unknown
     if (action === 'terminate') {
-      result = await callOpenClawGateway('sessions_kill', { sessionKey: id }, 10_000)
+      result = await callHermesGateway('sessions_kill', { sessionKey: id }, 10_000)
     } else {
       const message = action === 'monitor'
         ? { type: 'control', action: 'monitor' }
         : { type: 'control', action: 'pause' }
-      result = await callOpenClawGateway('sessions_send', { sessionKey: id, message }, 10_000)
+      result = await callHermesGateway('sessions_send', { sessionKey: id, message }, 10_000)
     }
 
     db_helpers.logActivity(

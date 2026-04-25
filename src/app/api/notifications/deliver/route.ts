@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase, Notification, db_helpers } from '@/lib/db';
-import { runOpenClaw } from '@/lib/command';
+import { runHermes } from '@/lib/command';
 import { requireRole } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 
@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
  * POST /api/notifications/deliver - Notification delivery daemon endpoint
  * 
  * Polls undelivered notifications and sends them to agents
- * via OpenClaw gateway call agent command
+ * via Hermes gateway call agent command
  */
 export async function POST(request: NextRequest) {
   const auth = requireRole(request, 'operator');
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         const message = formatNotificationMessage(notification);
         
         if (!dry_run) {
-          // Send notification via OpenClaw gateway call agent
+          // Send notification via Hermes gateway call agent
           try {
             const invokeParams = {
               message,
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
               idempotencyKey: `notification-${notification.id}-${Date.now()}`,
               deliver: false,
             };
-            const { stdout, stderr } = await runOpenClaw(
+            const { stdout, stderr } = await runHermes(
               [
                 'gateway',
                 'call',
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             );
 
             if (stderr && stderr.includes('error')) {
-              throw new Error(`OpenClaw error: ${stderr}`);
+              throw new Error(`Hermes error: ${stderr}`);
             }
             
             // Mark as delivered

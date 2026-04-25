@@ -8,7 +8,7 @@ import { requireRole } from '@/lib/auth';
 import { mutationLimiter } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { validateBody, createAgentSchema } from '@/lib/validation';
-import { runOpenClaw } from '@/lib/command';
+import { runHermes } from '@/lib/command';
 import { config as appConfig } from '@/lib/config';
 import { resolveWithin } from '@/lib/paths';
 import path from 'node:path';
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
 
     const {
       name,
-      openclaw_id,
+      hermes_id,
       role,
       session_key,
       soul_content,
@@ -174,12 +174,12 @@ export async function POST(request: NextRequest) {
       template,
       gateway_config,
       write_to_gateway,
-      provision_openclaw_workspace,
-      openclaw_workspace_path,
+      provision_hermes_workspace,
+      hermes_workspace_path,
       runtime_type,
     } = body;
 
-    const openclawId = (openclaw_id || name || 'agent')
+    const hermesId = (hermes_id || name || 'agent')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
@@ -210,27 +210,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Agent name already exists' }, { status: 409 });
     }
 
-    if (provision_openclaw_workspace) {
-      if (!appConfig.openclawStateDir) {
+    if (provision_hermes_workspace) {
+      if (!appConfig.hermesStateDir) {
         return NextResponse.json(
-          { error: 'OPENCLAW_STATE_DIR is not configured; cannot provision OpenClaw workspace' },
+          { error: 'HERMES_STATE_DIR is not configured; cannot provision Hermes workspace' },
           { status: 500 }
         );
       }
 
-      const workspacePath = openclaw_workspace_path
-        ? path.resolve(openclaw_workspace_path)
-        : resolveWithin(appConfig.openclawStateDir, path.join('workspaces', openclawId));
+      const workspacePath = hermes_workspace_path
+        ? path.resolve(hermes_workspace_path)
+        : resolveWithin(appConfig.hermesStateDir, path.join('workspaces', hermesId));
 
       try {
-        await runOpenClaw(
-          ['agents', 'add', openclawId, '--workspace', workspacePath, '--non-interactive'],
+        await runHermes(
+          ['agents', 'add', hermesId, '--workspace', workspacePath, '--non-interactive'],
           { timeoutMs: 20000 }
         );
       } catch (provisionError: any) {
-        logger.error({ err: provisionError, openclawId, workspacePath }, 'OpenClaw workspace provisioning failed');
+        logger.error({ err: provisionError, hermesId, workspacePath }, 'Hermes workspace provisioning failed');
         return NextResponse.json(
-          { error: provisionError?.message || 'Failed to provision OpenClaw agent workspace' },
+          { error: provisionError?.message || 'Failed to provision Hermes agent workspace' },
           { status: 502 }
         );
       }
@@ -319,7 +319,7 @@ export async function POST(request: NextRequest) {
     if (write_to_gateway && finalConfig) {
       try {
         await writeAgentToConfig({
-          id: openclawId,
+          id: hermesId,
           name,
           ...(finalConfig.model && { model: finalConfig.model }),
           ...(finalConfig.identity && { identity: finalConfig.identity }),
@@ -336,7 +336,7 @@ export async function POST(request: NextRequest) {
           actor_id: auth.user.id,
           target_type: 'agent',
           target_id: agentId as number,
-          detail: { name, openclaw_id: openclawId, template: template || null },
+          detail: { name, hermes_id: hermesId, template: template || null },
           ip_address: ipAddress,
         });
       } catch (gwErr: any) {

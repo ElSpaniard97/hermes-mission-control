@@ -20,10 +20,10 @@ export interface GatewaySession {
 }
 
 function getGatewaySessionStoreFiles(): string[] {
-  const openclawStateDir = config.openclawStateDir
-  if (!openclawStateDir) return []
+  const hermesStateDir = config.hermesStateDir
+  if (!hermesStateDir) return []
 
-  const agentsDir = path.join(openclawStateDir, 'agents')
+  const agentsDir = path.join(hermesStateDir, 'agents')
   if (!fs.existsSync(agentsDir)) return []
 
   let agentDirs: string[]
@@ -57,10 +57,10 @@ export function invalidateSessionCache(): void {
 }
 
 /**
- * Read all sessions from OpenClaw agent session stores on disk.
+ * Read all sessions from Hermes agent session stores on disk.
  *
- * OpenClaw stores sessions per-agent at:
- *   {OPENCLAW_STATE_DIR}/agents/{agentName}/sessions/sessions.json
+ * Hermes stores sessions per-agent at:
+ *   {HERMES_STATE_DIR}/agents/{agentName}/sessions/sessions.json
  *
  * Each file is a JSON object keyed by session key (e.g. "agent:<agent>:main")
  * with session metadata as values.

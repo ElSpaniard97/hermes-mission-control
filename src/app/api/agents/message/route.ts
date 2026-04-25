@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, db_helpers } from '@/lib/db'
-import { runOpenClaw } from '@/lib/command'
+import { runHermes } from '@/lib/command'
 import { requireRole } from '@/lib/auth'
 import { validateBody, createMessageSchema } from '@/lib/validation'
 import { mutationLimiter } from '@/lib/rate-limit'
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    await runOpenClaw(
+    await runHermes(
       [
         'gateway',
         'sessions_send',

@@ -6,7 +6,7 @@ import { scanHermesSessions } from '@/lib/hermes-sessions'
 import { scanOpenCodeSessions } from '@/lib/opencode-sessions'
 import { getDatabase, db_helpers } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
-import { callOpenClawGateway } from '@/lib/openclaw-gateway'
+import { callHermesGateway } from '@/lib/hermes-gateway'
 import { mutationLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid action. Must be: set-thinking, set-verbose, set-reasoning, set-label' }, { status: 400 })
     }
 
-    const result = await callOpenClawGateway(rpcMethod, rpcParams, 10_000)
+    const result = await callHermesGateway(rpcMethod, rpcParams, 10_000)
 
     db_helpers.logActivity(
       'session_control',
@@ -144,7 +144,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid session key' }, { status: 400 })
     }
 
-    const result = await callOpenClawGateway('session_delete', { sessionKey }, 10_000)
+    const result = await callHermesGateway('session_delete', { sessionKey }, 10_000)
 
     db_helpers.logActivity(
       'session_control',
@@ -163,7 +163,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 function mapGatewaySessions(gatewaySessions: ReturnType<typeof getAllGatewaySessions>) {
-  // Deduplicate by sessionId — OpenClaw tracks cron runs under the same
+  // Deduplicate by sessionId — Hermes tracks cron runs under the same
   // session ID as the parent session, causing duplicate React keys (#80).
   // Keep the most recently updated entry when duplicates exist.
   const sessionMap = new Map<string, (typeof gatewaySessions)[0]>()

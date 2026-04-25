@@ -4,7 +4,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/config', () => ({
-  config: { openclawConfigPath: '' },
+  config: { hermesConfigPath: '' },
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -18,11 +18,11 @@ describe('registerMcAsDashboard', () => {
 
   beforeEach(async () => {
     tempDir = mkdtempSync(path.join(os.tmpdir(), 'mc-gateway-runtime-'))
-    configPath = path.join(tempDir, 'openclaw.json')
+    configPath = path.join(tempDir, 'config.yaml')
     process.env = { ...originalEnv }
 
     const { config } = await import('@/lib/config')
-    config.openclawConfigPath = configPath
+    config.hermesConfigPath = configPath
   })
 
   afterEach(() => {

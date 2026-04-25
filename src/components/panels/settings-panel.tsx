@@ -32,7 +32,7 @@ interface ApiKeyInfo {
 
 interface CoordinatorTargetAgent {
   name: string
-  openclawId: string
+  hermesId: string
   isDefault: boolean
   sessionKey: string | null
   configRaw: string
@@ -48,13 +48,13 @@ function parseCoordinatorTargetAgents(rawAgents: any[]): CoordinatorTargetAgent[
     const name = typeof raw?.name === 'string' ? raw.name.trim() : ''
     if (!name) continue
     const config = raw?.config && typeof raw.config === 'object' ? raw.config : {}
-    const openclawIdRaw = typeof config.openclawId === 'string' && config.openclawId.trim()
-      ? config.openclawId.trim()
+    const hermesIdRaw = typeof config.hermesId === 'string' && config.hermesId.trim()
+      ? config.hermesId.trim()
       : name
-    const openclawId = openclawIdRaw.toLowerCase().replace(/\s+/g, '-')
+    const hermesId = hermesIdRaw.toLowerCase().replace(/\s+/g, '-')
     out.push({
       name,
-      openclawId,
+      hermesId,
       isDefault: config.isDefault === true,
       sessionKey: typeof raw?.session_key === 'string' && raw.session_key.trim() ? raw.session_key.trim() : null,
       configRaw: JSON.stringify(config),
@@ -63,7 +63,7 @@ function parseCoordinatorTargetAgents(rawAgents: any[]): CoordinatorTargetAgent[
 
   const unique = new Map<string, CoordinatorTargetAgent>()
   for (const agent of out) {
-    const key = agent.openclawId || agent.name.toLowerCase()
+    const key = agent.hermesId || agent.name.toLowerCase()
     if (!unique.has(key)) unique.set(key, agent)
   }
 
@@ -78,7 +78,7 @@ const categoryLabels: Record<string, { label: string; icon: string; description:
   security: { label: 'Security', icon: '🔑', description: 'API key management and security settings' },
   retention: { label: 'Data Retention', icon: '🗄', description: 'How long data is kept before cleanup' },
   chat: { label: 'Chat', icon: '💬', description: 'Coordinator routing and chat behavior settings' },
-  gateway: { label: 'Gateway', icon: '🔌', description: 'OpenClaw gateway connection settings' },
+  gateway: { label: 'Gateway', icon: '🔌', description: 'Hermes gateway connection settings' },
   profiles: { label: 'Security Profiles', icon: 'shield', description: 'Hook profile controls security scanning strictness' },
   custom: { label: 'Custom', icon: '🔧', description: 'User-defined settings' },
 }
@@ -182,7 +182,7 @@ export function SettingsPanel() {
       fallback: 'fallback',
     }
 
-    const targetLabel = `${resolved.deliveryName}${resolved.openclawAgentId ? ` (${resolved.openclawAgentId})` : ''}`
+    const targetLabel = `${resolved.deliveryName}${resolved.hermesAgentId ? ` (${resolved.hermesAgentId})` : ''}`
     return `Resolves now to ${targetLabel} via ${viaLabel[resolved.resolvedBy] || resolved.resolvedBy}.`
   }, [coordinatorTargetAgents, coordinatorSessions])
 
@@ -866,8 +866,8 @@ export function SettingsPanel() {
             ? [
                 { label: 'Auto (default/main-session fallback)', value: '' },
                 ...coordinatorTargetAgents.map(agent => ({
-                  label: `${agent.name}${agent.isDefault ? ' (default)' : ''} — ${agent.openclawId}`,
-                  value: agent.openclawId,
+                  label: `${agent.name}${agent.isDefault ? ' (default)' : ''} — ${agent.hermesId}`,
+                  value: agent.hermesId,
                 })),
               ]
             : null

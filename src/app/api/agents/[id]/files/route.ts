@@ -33,8 +33,8 @@ const FILE_ALIASES: Record<string, string[]> = {
 
 function resolveAgentWorkspacePath(workspace: string): string {
   if (isAbsolute(workspace)) return resolve(workspace)
-  if (!config.openclawStateDir) throw new Error('OPENCLAW_STATE_DIR not configured')
-  return resolveWithin(config.openclawStateDir, workspace)
+  if (!config.hermesStateDir) throw new Error('HERMES_STATE_DIR not configured')
+  return resolveWithin(config.hermesStateDir, workspace)
 }
 
 function getAgentByIdOrName(db: ReturnType<typeof getDatabase>, id: string, workspaceId: number): any | undefined {

@@ -27,40 +27,40 @@ const resolvedTokensPath = isBuildPhase
       path.join(resolvedDataDir, 'mission-control-tokens.json'))
   : (process.env.MISSION_CONTROL_TOKENS_PATH ||
       path.join(resolvedDataDir, 'mission-control-tokens.json'))
-const defaultOpenClawStateDir = path.join(os.homedir(), '.openclaw')
-const explicitOpenClawConfigPath =
-  process.env.OPENCLAW_CONFIG_PATH ||
-  process.env.MISSION_CONTROL_OPENCLAW_CONFIG_PATH ||
+const defaultHermesStateDir = path.join(os.homedir(), '.hermes')
+const explicitHermesConfigPath =
+  process.env.HERMES_CONFIG_PATH ||
+  process.env.MISSION_CONTROL_HERMES_CONFIG_PATH ||
   ''
-const legacyOpenClawHome =
-  process.env.OPENCLAW_HOME ||
+const legacyHermesHome =
+  process.env.HERMES_HOME ||
   process.env.CLAWDBOT_HOME ||
-  process.env.MISSION_CONTROL_OPENCLAW_HOME ||
+  process.env.MISSION_CONTROL_HERMES_HOME ||
   ''
-const openclawStateDir =
-  process.env.OPENCLAW_STATE_DIR ||
+const hermesStateDir =
+  process.env.HERMES_STATE_DIR ||
   process.env.CLAWDBOT_STATE_DIR ||
-  legacyOpenClawHome ||
-  (explicitOpenClawConfigPath ? path.dirname(explicitOpenClawConfigPath) : defaultOpenClawStateDir)
-const openclawConfigPath =
-  explicitOpenClawConfigPath ||
-  path.join(openclawStateDir, 'openclaw.json')
-const openclawWorkspaceDir =
+  legacyHermesHome ||
+  (explicitHermesConfigPath ? path.dirname(explicitHermesConfigPath) : defaultHermesStateDir)
+const hermesConfigPath =
+  explicitHermesConfigPath ||
+  path.join(hermesStateDir, 'config.yaml')
+const hermesWorkspaceDir =
   process.env.OPENCLAW_WORKSPACE_DIR ||
   process.env.MISSION_CONTROL_WORKSPACE_DIR ||
-  (openclawStateDir ? path.join(openclawStateDir, 'workspace') : '')
+  (hermesStateDir ? path.join(hermesStateDir, 'workspace') : '')
 const defaultMemoryDir = (() => {
-  if (process.env.OPENCLAW_MEMORY_DIR) return process.env.OPENCLAW_MEMORY_DIR
-  // Prefer OpenClaw workspace memory context (daily notes + knowledge-base)
+  if (process.env.HERMES_MEMORY_DIR) return process.env.HERMES_MEMORY_DIR
+  // Prefer Hermes workspace memory context (daily notes + knowledge-base)
   // when available; fallback to legacy sqlite memory path.
   if (
-    openclawWorkspaceDir &&
-    (fs.existsSync(path.join(openclawWorkspaceDir, 'memory')) ||
-      fs.existsSync(path.join(openclawWorkspaceDir, 'knowledge-base')))
+    hermesWorkspaceDir &&
+    (fs.existsSync(path.join(hermesWorkspaceDir, 'memory')) ||
+      fs.existsSync(path.join(hermesWorkspaceDir, 'knowledge-base')))
   ) {
-    return openclawWorkspaceDir
+    return hermesWorkspaceDir
   }
-  return (openclawStateDir ? path.join(openclawStateDir, 'memory') : '') || path.join(defaultDataDir, 'memory')
+  return (hermesStateDir ? path.join(hermesStateDir, 'memory') : '') || path.join(defaultDataDir, 'memory')
 })()
 
 const resolvedGnapRepoPath =
@@ -73,26 +73,26 @@ export const config = {
   dataDir: resolvedDataDir,
   dbPath: resolvedDbPath,
   tokensPath: resolvedTokensPath,
-  // Keep openclawHome as a legacy alias for existing code paths.
-  openclawHome: openclawStateDir,
-  openclawStateDir,
-  openclawConfigPath,
-  openclawBin: process.env.OPENCLAW_BIN || 'openclaw',
-  clawdbotBin: process.env.CLAWDBOT_BIN || 'clawdbot',
-  gatewayHost: process.env.OPENCLAW_GATEWAY_HOST || '127.0.0.1',
-  gatewayPort: clampInt(Number(process.env.OPENCLAW_GATEWAY_PORT || '18789'), 1, 65535, 18789),
+  // Keep hermesHome as a legacy alias for existing code paths.
+  hermesHome: hermesStateDir,
+  hermesStateDir,
+  hermesConfigPath,
+  hermesBin: process.env.HERMES_BIN || 'hermes',
+  hermesbotBin: process.env.CLAWDBOT_BIN || 'hermesbot',
+  gatewayHost: process.env.HERMES_GATEWAY_HOST || '127.0.0.1',
+  gatewayPort: clampInt(Number(process.env.HERMES_GATEWAY_PORT || '18789'), 1, 65535, 18789),
   logsDir:
-    process.env.OPENCLAW_LOG_DIR ||
-    (openclawStateDir ? path.join(openclawStateDir, 'logs') : ''),
+    process.env.HERMES_LOG_DIR ||
+    (hermesStateDir ? path.join(hermesStateDir, 'logs') : ''),
   tempLogsDir: process.env.CLAWDBOT_TMP_LOG_DIR || '',
   memoryDir: defaultMemoryDir,
   memoryAllowedPrefixes:
-    defaultMemoryDir === openclawWorkspaceDir
+    defaultMemoryDir === hermesWorkspaceDir
       ? ['memory/', 'knowledge-base/']
       : [],
   soulTemplatesDir:
-    process.env.OPENCLAW_SOUL_TEMPLATES_DIR ||
-    (openclawStateDir ? path.join(openclawStateDir, 'templates', 'souls') : ''),
+    process.env.HERMES_SOUL_TEMPLATES_DIR ||
+    (hermesStateDir ? path.join(hermesStateDir, 'templates', 'souls') : ''),
   homeDir: os.homedir(),
   gnap: {
     enabled: process.env.GNAP_ENABLED === 'true',

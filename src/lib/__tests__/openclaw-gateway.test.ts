@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseGatewayJsonOutput } from '@/lib/openclaw-gateway'
+import { parseGatewayJsonOutput } from '@/lib/hermes-gateway'
 
 describe('parseGatewayJsonOutput', () => {
   it('parses embedded object payloads', () => {

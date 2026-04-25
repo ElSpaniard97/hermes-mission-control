@@ -79,10 +79,10 @@ describe('Universal Templates', () => {
     }
   })
 
-  it('templates with openclawTemplateType reference valid OpenClaw templates', () => {
+  it('templates with hermesTemplateType reference valid Hermes templates', () => {
     for (const tpl of UNIVERSAL_TEMPLATES) {
-      if (tpl.openclawTemplateType) {
-        const ocTemplate = AGENT_TEMPLATES.find(t => t.type === tpl.openclawTemplateType)
+      if (tpl.hermesTemplateType) {
+        const ocTemplate = AGENT_TEMPLATES.find(t => t.type === tpl.hermesTemplateType)
         expect(ocTemplate).toBeDefined()
       }
     }
@@ -111,15 +111,15 @@ describe('Template-Framework Resolution', () => {
     expect(getTemplatesForFramework('nonexistent')).toEqual([])
   })
 
-  it('resolveTemplateConfig returns OpenClaw template for openclaw framework', () => {
-    const result = resolveTemplateConfig('developer', 'openclaw')
+  it('resolveTemplateConfig returns Hermes template for hermes framework', () => {
+    const result = resolveTemplateConfig('developer', 'hermes')
     expect(result).toBeDefined()
     expect(result?.template).toBeDefined()
     expect(result?.template?.type).toBe('developer')
     expect(result?.universal.type).toBe('developer')
   })
 
-  it('resolveTemplateConfig returns universal-only for non-openclaw frameworks', () => {
+  it('resolveTemplateConfig returns universal-only for non-hermes frameworks', () => {
     const result = resolveTemplateConfig('developer', 'langgraph')
     expect(result).toBeDefined()
     expect(result?.template).toBeUndefined()

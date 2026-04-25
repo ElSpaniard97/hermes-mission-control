@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-export interface OpenClawDoctorFixResult {
+export interface HermesDoctorFixResult {
   archivedOrphans: number
   storesScanned: number
 }
@@ -36,7 +36,7 @@ function collectReferencedTranscriptNames(store: Record<string, unknown>): Set<s
   return referenced
 }
 
-export function archiveOrphanTranscriptsForStateDir(stateDir: string): OpenClawDoctorFixResult {
+export function archiveOrphanTranscriptsForStateDir(stateDir: string): HermesDoctorFixResult {
   const agentsDir = path.join(stateDir, 'agents')
   if (!fs.existsSync(agentsDir)) {
     return { archivedOrphans: 0, storesScanned: 0 }

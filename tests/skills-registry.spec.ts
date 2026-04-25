@@ -31,7 +31,7 @@ test.describe('Skills Registry', () => {
   })
 
   test('GET clawhub search returns structured result', async ({ request }) => {
-    // Note: this hits the real ClawdHub API. If offline, it gracefully returns empty.
+    // Note: this hits the real HermesHub API. If offline, it gracefully returns empty.
     const res = await request.get('/api/skills/registry?source=clawhub&q=terraform', {
       headers: API_KEY_HEADER,
     })
@@ -55,15 +55,15 @@ test.describe('Skills Registry', () => {
     expect(Array.isArray(body.skills)).toBe(true)
   })
 
-  test('GET awesome-openclaw search returns structured result', async ({ request }) => {
-    const res = await request.get('/api/skills/registry?source=awesome-openclaw&q=git', {
+  test('GET awesome-hermes search returns structured result', async ({ request }) => {
+    const res = await request.get('/api/skills/registry?source=awesome-hermes&q=git', {
       headers: API_KEY_HEADER,
     })
     expect(res.status()).toBe(200)
     const body = await res.json()
     expect(body).toHaveProperty('skills')
     expect(body).toHaveProperty('total')
-    expect(body.source).toBe('awesome-openclaw')
+    expect(body.source).toBe('awesome-hermes')
     expect(Array.isArray(body.skills)).toBe(true)
   })
 

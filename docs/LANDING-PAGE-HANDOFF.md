@@ -40,7 +40,7 @@ Manage agent fleets, track tasks, monitor costs, and orchestrate workflows — a
 | Total commits | 239+ |
 | External dependencies required | 0 (SQLite only, no Redis/Postgres/Docker) |
 | Auth methods | 3 (session, API key, Google OAuth) |
-| Framework adapters | 6 (OpenClaw, CrewAI, LangGraph, AutoGen, Claude SDK, Generic) |
+| Framework adapters | 6 (Hermes, CrewAI, LangGraph, AutoGen, Claude SDK, Generic) |
 
 ---
 
@@ -68,7 +68,7 @@ Natural language scheduling — "every morning at 9am", "every 2 hours". Zero-de
 Scheduler polls assigned tasks and runs agents via CLI. Dispatched tasks link to agent sessions for full traceability.
 
 ### 8. Skills Hub
-Browse, install, and manage agent skills from local directories and external registries (ClawdHub, skills.sh). Built-in security scanner checks for prompt injection, credential leaks, data exfiltration, and obfuscated content. Bidirectional disk-DB sync with SHA-256 change detection.
+Browse, install, and manage agent skills from local directories and external registries (HermesHub, skills.sh). Built-in security scanner checks for prompt injection, credential leaks, data exfiltration, and obfuscated content. Bidirectional disk-DB sync with SHA-256 change detection.
 
 ### 9. Claude Code Integration
 - **Session tracking** — auto-discovers sessions from `~/.claude/projects/`, extracts tokens, model info, costs
@@ -85,7 +85,7 @@ Session-threaded inter-agent communication via comms API (`a2a:*`, `coord:*`, `s
 Connect to multiple agent gateways simultaneously. OS-level gateway discovery (systemd, Tailscale Serve). Auto-connect with health probes.
 
 ### 13. Framework Adapters
-Built-in adapter layer for multi-agent registration: OpenClaw, CrewAI, LangGraph, AutoGen, Claude SDK, and generic fallback. Each normalizes registration, heartbeats, and task reporting.
+Built-in adapter layer for multi-agent registration: Hermes, CrewAI, LangGraph, AutoGen, Claude SDK, and generic fallback. Each normalizes registration, heartbeats, and task reporting.
 
 ### 14. Background Automation
 Scheduled tasks for DB backups, stale record cleanup, agent heartbeat monitoring, recurring task spawning, and automated quality reviews.
@@ -209,7 +209,7 @@ Initial login seeded from `AUTH_USER` / `AUTH_PASS` on first run.
 
 ## Roadmap / Coming Soon
 
-- Agent-agnostic gateway support (OpenClaw, ZeroClaw, OpenFang, NeoBot, IronClaw, etc.)
+- Agent-agnostic gateway support (Hermes, ZeroClaw, OpenFang, NeoBot, IronClaw, etc.)
 - **Flight Deck** — native desktop companion app (Tauri v2) with real PTY terminal grid and system tray HUD (private beta)
 - First-class per-agent cost breakdowns panel
 - OAuth approval UI improvements
@@ -234,7 +234,7 @@ Initial login seeded from `AUTH_USER` / `AUTH_PASS` on first run.
 13. **Skills Hub** — registry integration, bidirectional sync, security scanner
 14. **Per-agent rate limiting** — identity-based quotas via `x-agent-name`
 15. **Agent self-registration** — autonomous onboarding endpoint
-16. **Framework adapters** — OpenClaw, CrewAI, LangGraph, AutoGen, Claude SDK, generic
+16. **Framework adapters** — Hermes, CrewAI, LangGraph, AutoGen, Claude SDK, generic
 17. **Self-update mechanism** — one-click update with audit logging
 18. **Local agent discovery** — auto-detect from ~/.agents, ~/.codex, ~/.claude
 19. **Chat workspace** — embedded chat with local session continuation

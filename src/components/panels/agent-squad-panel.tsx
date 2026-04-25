@@ -600,7 +600,7 @@ function CreateAgentModal({
               >
                 <option value="">{t('runtimeTypeAuto')}</option>
                 <option value="hermes">Hermes Agent</option>
-                <option value="openclaw">OpenClaw</option>
+                <option value="hermes">Hermes</option>
                 <option value="claude">Claude Code</option>
                 <option value="codex">Codex CLI</option>
                 <option value="custom">{t('runtimeTypeCustom')}</option>

@@ -230,18 +230,18 @@ async function syncAgentLiveStatuses(): Promise<number> {
 
   db.transaction(() => {
     for (const agent of agents) {
-      // Match by agent name or openclawId from config
-      let openclawId: string | null = null
+      // Match by agent name or hermesId from config
+      let hermesId: string | null = null
       if (agent.config) {
         try {
           const cfg = JSON.parse(agent.config)
-          if (typeof cfg.openclawId === 'string' && cfg.openclawId.trim()) {
-            openclawId = cfg.openclawId.trim()
+          if (typeof cfg.hermesId === 'string' && cfg.hermesId.trim()) {
+            hermesId = cfg.hermesId.trim()
           }
         } catch { /* ignore */ }
       }
 
-      const candidates = [openclawId, agent.name].filter(Boolean).map(s => normalize(s!))
+      const candidates = [hermesId, agent.name].filter(Boolean).map(s => normalize(s!))
       let matched: { status: 'active' | 'idle' | 'offline'; lastActivity: number; channel: string } | undefined
 
       for (const [sessionAgent, info] of liveStatuses) {
@@ -279,7 +279,7 @@ const TICK_MS = 60 * 1000 // Check every minute
 export function initScheduler() {
   if (tickInterval) return // Already running
 
-  // Auto-sync agents from openclaw.json on startup
+  // Auto-sync agents from config.yaml on startup
   syncAgentsFromConfig('startup').catch(err => {
     logger.warn({ err }, 'Agent auto-sync failed')
   })
@@ -355,7 +355,7 @@ export function initScheduler() {
 
   tasks.set('gateway_agent_sync', {
     name: 'Gateway Agent Sync',
-    intervalMs: TICK_MS, // Every 60s — re-read openclaw.json
+    intervalMs: TICK_MS, // Every 60s — re-read config.yaml
     lastRun: null,
     nextRun: now + 20_000, // First scan 20s after startup (after local sync)
     enabled: true,

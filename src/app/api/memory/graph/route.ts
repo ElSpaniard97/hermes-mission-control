@@ -21,8 +21,8 @@ interface AgentGraphData {
   files: AgentFileInfo[]
 }
 
-const memoryDbDir = config.openclawStateDir
-  ? path.join(config.openclawStateDir, 'memory')
+const memoryDbDir = config.hermesStateDir
+  ? path.join(config.hermesStateDir, 'memory')
   : ''
 
 function getAgentData(dbPath: string, agentName: string): AgentGraphData | null {

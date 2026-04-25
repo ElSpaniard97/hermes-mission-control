@@ -2,8 +2,8 @@ import { eventBus } from '@/lib/event-bus'
 import { queryPendingAssignments } from './adapter'
 import type { FrameworkAdapter, AgentRegistration, HeartbeatPayload, TaskReport, Assignment } from './adapter'
 
-export class OpenClawAdapter implements FrameworkAdapter {
-  readonly framework = 'openclaw'
+export class HermesAdapter implements FrameworkAdapter {
+  readonly framework = 'hermes'
 
   async register(agent: AgentRegistration): Promise<void> {
     eventBus.broadcast('agent.created', {

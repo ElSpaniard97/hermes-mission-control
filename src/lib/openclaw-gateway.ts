@@ -1,4 +1,4 @@
-import { runOpenClaw } from './command'
+import { runHermes } from './command'
 
 export function parseGatewayJsonOutput(raw: string): unknown | null {
   const trimmed = String(raw || '').trim()
@@ -37,12 +37,12 @@ export function parseGatewayJsonOutput(raw: string): unknown | null {
   }
 }
 
-export async function callOpenClawGateway<T = unknown>(
+export async function callHermesGateway<T = unknown>(
   method: string,
   params: unknown,
   timeoutMs = 10000,
 ): Promise<T> {
-  const result = await runOpenClaw(
+  const result = await runHermes(
     [
       'gateway',
       'call',

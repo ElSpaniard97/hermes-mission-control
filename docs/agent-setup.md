@@ -43,18 +43,18 @@ curl -X POST http://localhost:3000/api/agents \
     "soul_content": "You are Aegis, the quality reviewer...",
     "config": {
       "dispatchModel": "9router/cc/claude-opus-4-6",
-      "openclawId": "aegis"
+      "hermesId": "aegis"
     }
   }'
 ```
 
 This requires `operator` role and supports additional fields like `soul_content`, `config`, and `template`.
 
-### Method 3: Config Sync (OpenClaw or Local Discovery)
+### Method 3: Config Sync (Hermes or Local Discovery)
 
 Mission Control can auto-discover agents from:
 
-**OpenClaw config sync** — Reads agents from your `openclaw.json` file:
+**Hermes config sync** — Reads agents from your `config.yaml` file:
 
 ```bash
 curl -X POST http://localhost:3000/api/agents/sync \
@@ -63,7 +63,7 @@ curl -X POST http://localhost:3000/api/agents/sync \
   -d '{"source": "config"}'
 ```
 
-Set `OPENCLAW_CONFIG_PATH` to point to your `openclaw.json`.
+Set `HERMES_CONFIG_PATH` to point to your `config.yaml`.
 
 **Local agent discovery** — Scans standard directories for agent definitions:
 
@@ -239,7 +239,7 @@ Each agent has a JSON `config` object stored in the database. Key fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `openclawId` | string | Gateway agent identifier (falls back to agent name) |
+| `hermesId` | string | Gateway agent identifier (falls back to agent name) |
 | `dispatchModel` | string | Model override for auto-dispatch (e.g., `9router/cc/claude-opus-4-6`) |
 | `capabilities` | string[] | List of agent capabilities |
 | `framework` | string | Framework that created the agent (e.g., `claude-sdk`, `crewai`) |
@@ -248,7 +248,7 @@ Example config:
 
 ```json
 {
-  "openclawId": "scout",
+  "hermesId": "scout",
   "dispatchModel": "9router/cc/claude-sonnet-4-6",
   "capabilities": ["code-review", "testing", "documentation"],
   "framework": "claude-sdk"
@@ -316,7 +316,7 @@ The `source` field on each agent indicates how it was registered:
 | `manual` | Created through UI or direct API call |
 | `self` | Agent self-registered via `/api/agents/register` |
 | `local` | Discovered from `~/.agents/`, `~/.claude/agents/`, etc. |
-| `config` | Synced from `openclaw.json` |
+| `config` | Synced from `config.yaml` |
 | `gateway` | Registered by a gateway connection |
 
 ## Agent Templates

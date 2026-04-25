@@ -14,7 +14,7 @@ interface CronJob {
   nextRun?: number
   lastStatus?: 'success' | 'error' | 'running'
   lastError?: string
-  // Extended fields from OpenClaw format
+  // Extended fields from Hermes format
   id?: string
   agentId?: string
   timezone?: string
@@ -23,10 +23,10 @@ interface CronJob {
 }
 
 /**
- * OpenClaw cron jobs live in ~/.openclaw/cron/jobs.json
+ * Hermes cron jobs live in ~/.hermes/cron/jobs.json
  * Format: { version: 1, jobs: [ { id, agentId, name, enabled, schedule: { kind, expr, tz }, payload, delivery, state } ] }
  */
-interface OpenClawCronJob {
+interface HermesCronJob {
   id: string
   agentId: string
   name: string
@@ -61,18 +61,18 @@ interface OpenClawCronJob {
   }
 }
 
-interface OpenClawCronFile {
+interface HermesCronFile {
   version: number
-  jobs: OpenClawCronJob[]
+  jobs: HermesCronJob[]
 }
 
 function getCronFilePath(): string {
-  const openclawStateDir = config.openclawStateDir
-  if (!openclawStateDir) return ''
-  return path.join(openclawStateDir, 'cron', 'jobs.json')
+  const hermesStateDir = config.hermesStateDir
+  if (!hermesStateDir) return ''
+  return path.join(hermesStateDir, 'cron', 'jobs.json')
 }
 
-async function loadCronFile(): Promise<OpenClawCronFile | null> {
+async function loadCronFile(): Promise<HermesCronFile | null> {
   const filePath = getCronFilePath()
   if (!filePath) return null
   try {
@@ -83,7 +83,7 @@ async function loadCronFile(): Promise<OpenClawCronFile | null> {
   }
 }
 
-async function saveCronFile(data: OpenClawCronFile): Promise<boolean> {
+async function saveCronFile(data: HermesCronFile): Promise<boolean> {
   const filePath = getCronFilePath()
   if (!filePath) return false
   try {
@@ -104,7 +104,7 @@ function mapLastStatus(status?: string): 'success' | 'error' | 'running' | undef
   return 'success' // default for unknown non-error statuses
 }
 
-function mapOpenClawJob(job: OpenClawCronJob): CronJob {
+function mapHermesJob(job: HermesCronJob): CronJob {
   // Build a human-readable command description from the payload
   const payloadSummary = job.payload.message
     ? job.payload.message.slice(0, 200) + (job.payload.message.length > 200 ? '...' : '')
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ jobs: [] })
       }
 
-      const jobs = cronFile.jobs.map(mapOpenClawJob)
+      const jobs = cronFile.jobs.map(mapHermesJob)
       return NextResponse.json({ jobs })
     }
 
@@ -198,13 +198,13 @@ export async function GET(request: NextRequest) {
       const query = searchParams.get('query') || ''
 
       // Try to load run history from the cron runs log file
-      const openclawStateDir = config.openclawStateDir
-      if (!openclawStateDir) {
+      const hermesStateDir = config.hermesStateDir
+      if (!hermesStateDir) {
         return NextResponse.json({ entries: [], total: 0, hasMore: false })
       }
 
       try {
-        const runsPath = path.join(openclawStateDir, 'cron', 'runs.json')
+        const runsPath = path.join(hermesStateDir, 'cron', 'runs.json')
         const raw = await readFile(runsPath, 'utf-8')
         const runsData = JSON.parse(raw)
         let entries: any[] = Array.isArray(runsData.runs) ? runsData.runs : Array.isArray(runsData) ? runsData : []
@@ -313,7 +313,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Job not found' }, { status: 404 })
       }
 
-      // For OpenClaw cron jobs, trigger via the openclaw CLI
+      // For Hermes cron jobs, trigger via the hermes CLI
       const triggerMode = body.mode || 'force'
       const { runCommand } = await import('@/lib/command')
       try {
@@ -321,7 +321,7 @@ export async function POST(request: NextRequest) {
         if (triggerMode === 'due') {
           args.push('--if-due')
         }
-        const { stdout, stderr } = await runCommand(config.openclawBin, args, { timeoutMs: 30000 })
+        const { stdout, stderr } = await runCommand(config.hermesBin, args, { timeoutMs: 30000 })
 
         return NextResponse.json({
           success: true,
@@ -378,7 +378,7 @@ export async function POST(request: NextRequest) {
       // Prevent duplicates: remove existing jobs with the same name
       cronFile.jobs = cronFile.jobs.filter(j => j.name !== name)
 
-      const newJob: OpenClawCronJob = {
+      const newJob: HermesCronJob = {
         id: `mc-${Date.now().toString(36)}`,
         agentId: String(process.env.MC_CRON_AGENT_ID || process.env.MC_COORDINATOR_AGENT || 'system'),
         name,
@@ -437,7 +437,7 @@ export async function POST(request: NextRequest) {
         counter++
       }
 
-      const clonedJob: OpenClawCronJob = {
+      const clonedJob: HermesCronJob = {
         ...JSON.parse(JSON.stringify(sourceJob)),
         id: `mc-${Date.now().toString(36)}`,
         name: cloneName,

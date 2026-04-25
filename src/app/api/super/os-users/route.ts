@@ -18,8 +18,8 @@ export interface OsUser {
   has_claude: boolean
   /** Whether codex CLI is installed/accessible for this user */
   has_codex: boolean
-  /** Whether openclaw is installed for this user */
-  has_openclaw: boolean
+  /** Whether hermes is installed for this user */
+  has_hermes: boolean
   /** Whether this OS user is the one running the MC process (i.e. "Default" org) */
   is_process_owner: boolean
 }
@@ -46,7 +46,7 @@ function checkToolExists(homeDir: string, tool: string): boolean {
   const candidates = [
     path.join(homeDir, '.local', 'bin', tool),
     path.join(homeDir, '.npm-global', 'bin', tool),
-    path.join(homeDir, `.${tool}`),             // e.g. ~/.claude, ~/.openclaw config dir = installed
+    path.join(homeDir, `.${tool}`),             // e.g. ~/.claude, ~/.hermes config dir = installed
   ]
   for (const p of candidates) {
     try { if (fs.existsSync(p)) return true } catch {}
@@ -59,18 +59,18 @@ function checkToolExists(homeDir: string, tool: string): boolean {
   return false
 }
 
-/** Install a tool (openclaw, claude, codex) for a given OS user. Non-fatal — returns success/error. */
+/** Install a tool (hermes, claude, codex) for a given OS user. Non-fatal — returns success/error. */
 function installToolForUser(
   homeDir: string,
   username: string,
-  tool: 'openclaw' | 'claude' | 'codex'
+  tool: 'hermes' | 'claude' | 'codex'
 ): { success: boolean; error?: string } {
   try {
-    if (tool === 'openclaw') {
-      // openclaw is managed by MC — create dir structure + install latest from npm
-      const openclawDir = path.join(homeDir, '.openclaw')
+    if (tool === 'hermes') {
+      // hermes is managed by MC — create dir structure + install latest from npm
+      const hermesDir = path.join(homeDir, '.hermes')
       const workspaceDir = path.join(homeDir, 'workspace')
-      for (const dir of [openclawDir, workspaceDir]) {
+      for (const dir of [hermesDir, workspaceDir]) {
         try {
           execFileSync('/usr/bin/sudo', ['-n', 'install', '-d', '-o', username, dir], { timeout: 5000, stdio: 'pipe' })
         } catch {
@@ -78,9 +78,9 @@ function installToolForUser(
           fs.mkdirSync(dir, { recursive: true })
         }
       }
-      // Install latest openclaw from GitHub (always latest) with npm fallback
+      // Install latest hermes from GitHub (always latest) with npm fallback
       try {
-        execFileSync('/usr/bin/sudo', ['-n', '-u', username, 'npm', 'install', '-g', 'openclaw/openclaw'], {
+        execFileSync('/usr/bin/sudo', ['-n', '-u', username, 'npm', 'install', '-g', 'hermes/hermes'], {
           timeout: 120000,
           stdio: 'pipe',
           env: { ...process.env, HOME: homeDir },
@@ -88,7 +88,7 @@ function installToolForUser(
       } catch (npmErr: any) {
         // Dir structure created but npm install failed — still partially useful
         const msg = npmErr?.stderr?.toString?.()?.slice(0, 200) || npmErr?.message || 'npm install failed'
-        logger.warn({ tool, username, err: msg }, 'openclaw npm install failed, dir structure created')
+        logger.warn({ tool, username, err: msg }, 'hermes npm install failed, dir structure created')
         return { success: true, error: `dirs created but npm install failed: ${msg}` }
       }
       return { success: true }
@@ -180,8 +180,8 @@ function discoverOsUsers(): OsUser[] {
 
         const hasClaude = checkToolExists(homeDir, 'claude')
         const hasCodex = checkToolExists(homeDir, 'codex')
-        const hasOpenclaw = checkToolExists(homeDir, 'openclaw')
-        users.push({ username, uid, home_dir: homeDir, shell, linked_tenant_id: null, has_claude: hasClaude, has_codex: hasCodex, has_openclaw: hasOpenclaw, is_process_owner: false })
+        const hasOpenclaw = checkToolExists(homeDir, 'hermes')
+        users.push({ username, uid, home_dir: homeDir, shell, linked_tenant_id: null, has_claude: hasClaude, has_codex: hasCodex, has_hermes: hasOpenclaw, is_process_owner: false })
       }
     } else if (platform === 'linux') {
       // Linux: getent passwd returns colon-separated fields (no shell needed)
@@ -199,8 +199,8 @@ function discoverOsUsers(): OsUser[] {
 
         const hasClaude = checkToolExists(homeDir, 'claude')
         const hasCodex = checkToolExists(homeDir, 'codex')
-        const hasOpenclaw = checkToolExists(homeDir, 'openclaw')
-        users.push({ username, uid, home_dir: homeDir, shell, linked_tenant_id: null, has_claude: hasClaude, has_codex: hasCodex, has_openclaw: hasOpenclaw, is_process_owner: false })
+        const hasOpenclaw = checkToolExists(homeDir, 'hermes')
+        users.push({ username, uid, home_dir: homeDir, shell, linked_tenant_id: null, has_claude: hasClaude, has_codex: hasCodex, has_hermes: hasOpenclaw, is_process_owner: false })
       }
     }
   } catch {
@@ -247,7 +247,7 @@ export async function GET(request: NextRequest) {
  * POST /api/super/os-users - Create a new OS-level user and register as tenant (admin only)
  *
  * Local mode: creates OS user + home dir, registers in tenants table as active
- * Gateway mode: creates OS user + delegates to full bootstrap pipeline (openclaw + workspace + agents)
+ * Gateway mode: creates OS user + delegates to full bootstrap pipeline (hermes + workspace + agents)
  *
  * Body: { username, display_name, password?, gateway_mode?: boolean, gateway_port?, owner_gateway? }
  */
@@ -267,7 +267,7 @@ export async function POST(request: NextRequest) {
   const displayName = String(body.display_name || '').trim()
   const password = body.password ? String(body.password) : undefined
   const gatewayMode = !!body.gateway_mode
-  const installOpenclaw = !!body.install_openclaw
+  const installOpenclaw = !!body.install_hermes
   const installClaude = !!body.install_claude
   const installCodex = !!body.install_codex
 
@@ -306,7 +306,7 @@ export async function POST(request: NextRequest) {
         gateway_port: body.gateway_port ? Number(body.gateway_port) : undefined,
         owner_gateway: body.owner_gateway || undefined,
         dry_run: body.dry_run !== false,
-        config: { install_openclaw: installOpenclaw, install_claude: installClaude, install_codex: installCodex },
+        config: { install_hermes: installOpenclaw, install_claude: installClaude, install_codex: installCodex },
       }, actor)
       return NextResponse.json(result, { status: 201 })
     } catch (e: any) {
@@ -373,14 +373,14 @@ export async function POST(request: NextRequest) {
 
     // Determine home directory for the new user
     const homeDir = platform === 'darwin' ? `/Users/${username}` : `/home/${username}`
-    const openclawHome = path.posix.join(homeDir, '.openclaw')
+    const hermesHome = path.posix.join(homeDir, '.hermes')
     const workspaceRoot = path.posix.join(homeDir, 'workspace')
 
     // Register as tenant in DB
     const tenantRes = db.prepare(`
-      INSERT INTO tenants (slug, display_name, linux_user, plan_tier, status, openclaw_home, workspace_root, gateway_port, dashboard_port, config, created_by, owner_gateway)
+      INSERT INTO tenants (slug, display_name, linux_user, plan_tier, status, hermes_home, workspace_root, gateway_port, dashboard_port, config, created_by, owner_gateway)
       VALUES (?, ?, ?, 'local', 'active', ?, ?, NULL, NULL, '{}', ?, 'local')
-    `).run(username, displayName, username, openclawHome, workspaceRoot, actor)
+    `).run(username, displayName, username, hermesHome, workspaceRoot, actor)
 
     const tenantId = Number(tenantRes.lastInsertRowid)
 
@@ -396,9 +396,9 @@ export async function POST(request: NextRequest) {
 
     // Install requested tools (non-fatal)
     const installResults: Record<string, { success: boolean; error?: string }> = {}
-    const toolsToInstall: Array<'openclaw' | 'claude' | 'codex'> = []
-    if (installOpenclaw) toolsToInstall.push('openclaw')
-    // When openclaw is selected, claude+codex are bundled — skip separate installs
+    const toolsToInstall: Array<'hermes' | 'claude' | 'codex'> = []
+    if (installOpenclaw) toolsToInstall.push('hermes')
+    // When hermes is selected, claude+codex are bundled — skip separate installs
     if (installClaude && !installOpenclaw) toolsToInstall.push('claude')
     if (installCodex && !installOpenclaw) toolsToInstall.push('codex')
 

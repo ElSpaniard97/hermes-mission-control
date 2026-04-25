@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/** Spawn a single pipeline step using `openclaw agent` */
+/** Spawn a single pipeline step using `hermes agent` */
 async function spawnStep(
   db: ReturnType<typeof getDatabase>,
   pipelineName: string,
@@ -127,14 +127,14 @@ async function spawnStep(
   workspaceId: number
 ): Promise<{ success: boolean; stdout?: string; error?: string }> {
   try {
-    const { runOpenClaw } = await import('@/lib/command')
+    const { runHermes } = await import('@/lib/command')
     const args = [
       'agent',
       '--message', `[Pipeline: ${pipelineName} | Step ${stepIdx + 1}] ${template.task_prompt}`,
       '--timeout', String(template.timeout_seconds),
       '--json',
     ]
-    const { stdout } = await runOpenClaw(args, { timeoutMs: 15000 })
+    const { stdout } = await runHermes(args, { timeoutMs: 15000 })
 
     const spawnId = `pipeline-${runId}-step-${stepIdx}-${Date.now()}`
     steps[stepIdx].spawn_id = spawnId

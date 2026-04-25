@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { useMissionControl } from '@/store'
 
-interface OpenClawDoctorStatus {
+interface HermesDoctorStatus {
   level: 'healthy' | 'warning' | 'error'
   category: 'config' | 'state' | 'security' | 'general'
   healthy: boolean
@@ -15,17 +15,17 @@ interface OpenClawDoctorStatus {
   raw: string
 }
 
-interface OpenClawDoctorFixProgress {
+interface HermesDoctorFixProgress {
   step: string
   detail: string
 }
 
 type BannerState = 'idle' | 'fixing' | 'success' | 'error'
 
-export function OpenClawDoctorBanner() {
+export function HermesDoctorBanner() {
   const t = useTranslations('doctorBanner')
   const tc = useTranslations('common')
-  const [doctor, setDoctor] = useState<OpenClawDoctorStatus | null>(null)
+  const [doctor, setDoctor] = useState<HermesDoctorStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const doctorDismissedAt = useMissionControl(s => s.doctorDismissedAt)
   const dismissDoctor = useMissionControl(s => s.dismissDoctor)
@@ -36,7 +36,7 @@ export function OpenClawDoctorBanner() {
 
   async function loadDoctorStatus() {
     try {
-      const res = await fetch('/api/openclaw/doctor', { cache: 'no-store' })
+      const res = await fetch('/api/hermes/doctor', { cache: 'no-store' })
       if (!res.ok) {
         setDoctor(null)
         return
@@ -72,7 +72,7 @@ export function OpenClawDoctorBanner() {
     }, 1400)
 
     try {
-      const res = await fetch('/api/openclaw/doctor', { method: 'POST' })
+      const res = await fetch('/api/hermes/doctor', { method: 'POST' })
       const data = await res.json()
       window.clearInterval(progressTimer)
 
@@ -87,7 +87,7 @@ export function OpenClawDoctorBanner() {
       }
 
       setDoctor(data.status)
-      const progress = Array.isArray(data.progress) ? data.progress as OpenClawDoctorFixProgress[] : []
+      const progress = Array.isArray(data.progress) ? data.progress as HermesDoctorFixProgress[] : []
       setFixProgress(progress.map(item => item.detail).filter(Boolean).join(' '))
       setState(data.status?.healthy ? 'success' : 'idle')
       setShowDetails(false)

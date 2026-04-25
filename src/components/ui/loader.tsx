@@ -26,9 +26,9 @@ const LOADER_AGENTS = [
     labelClass: 'absolute left-1/2 -top-5 -translate-x-1/2',
   },
   {
-    key: 'openclaw',
-    name: 'OpenClaw',
-    src: '/brand/openclaw-logo.png',
+    key: 'hermes',
+    name: 'Hermes',
+    src: '/brand/hermes-logo.png',
     wrapperClass: 'absolute left-0 top-1/2 -translate-y-1/2 opacity-0 animate-converge-left',
     labelClass: 'absolute -left-9 top-1/2 -translate-y-1/2',
   },
@@ -103,7 +103,7 @@ function PageLoader({ steps }: { steps?: InitStep[] }) {
       className="flex items-center justify-center min-h-screen bg-background void-bg"
     >
       <div className="flex flex-col items-center gap-8 w-64">
-        {/* Animated logo sequence: OpenClaw + Claude converge → morph into MC mark */}
+        {/* Animated logo sequence: Hermes + Claude converge → morph into MC mark */}
         <div className="relative flex items-center justify-center h-28 w-full">
           {/* Ambient glow */}
           <div

@@ -1,7 +1,7 @@
 /**
  * Agent Config Sync
  *
- * Reads agents from openclaw.json and upserts them into the MC database.
+ * Reads agents from config.yaml and upserts them into the MC database.
  * Used by both the /api/agents/sync endpoint and the startup scheduler.
  */
 
@@ -14,7 +14,7 @@ import { resolveWithin } from './paths'
 import { logger } from './logger'
 import { parseJsonRelaxed } from './json-relaxed'
 
-interface OpenClawAgent {
+interface HermesAgent {
   id: string
   name?: string
   default?: boolean
@@ -128,15 +128,15 @@ function parseToolsFromFile(content: string): { allow?: string[]; raw?: string }
 }
 
 function getConfigPath(): string | null {
-  return config.openclawConfigPath || null
+  return config.hermesConfigPath || null
 }
 
 function resolveAgentWorkspacePath(workspace: string): string {
   if (isAbsolute(workspace)) return resolve(workspace)
-  if (!config.openclawStateDir) {
-    throw new Error('OPENCLAW_STATE_DIR not configured')
+  if (!config.hermesStateDir) {
+    throw new Error('HERMES_STATE_DIR not configured')
   }
-  return resolveWithin(config.openclawStateDir, workspace)
+  return resolveWithin(config.hermesStateDir, workspace)
 }
 
 const MAX_WORKSPACE_FILE_BYTES = 1024 * 1024 // 1 MB
@@ -185,10 +185,10 @@ export function enrichAgentConfigFromWorkspace(configData: any): any {
   }
 }
 
-/** Read and parse openclaw.json agents list */
-async function readOpenClawAgents(): Promise<OpenClawAgent[]> {
+/** Read and parse config.yaml agents list */
+async function readHermesAgents(): Promise<HermesAgent[]> {
   const configPath = getConfigPath()
-  if (!configPath) throw new Error('OPENCLAW_CONFIG_PATH not configured')
+  if (!configPath) throw new Error('HERMES_CONFIG_PATH not configured')
 
   const { readFile } = require('fs/promises')
   const raw = await readFile(configPath, 'utf-8')
@@ -196,8 +196,8 @@ async function readOpenClawAgents(): Promise<OpenClawAgent[]> {
   return parsed?.agents?.list || []
 }
 
-/** Extract MC-friendly fields from an OpenClaw agent config */
-function mapAgentToMC(agent: OpenClawAgent): {
+/** Extract MC-friendly fields from an Hermes agent config */
+function mapAgentToMC(agent: HermesAgent): {
   name: string
   role: string
   config: any
@@ -207,7 +207,7 @@ function mapAgentToMC(agent: OpenClawAgent): {
   const role = agent.identity?.theme || 'agent'
   // Store the full config minus systemPrompt/soul (which can be large)
   const configData = enrichAgentConfigFromWorkspace({
-    openclawId: agent.id,
+    hermesId: agent.id,
     model: agent.model,
     identity: agent.identity,
     sandbox: agent.sandbox,
@@ -225,11 +225,11 @@ function mapAgentToMC(agent: OpenClawAgent): {
   return { name, role, config: configData, soul_content }
 }
 
-/** Sync agents from openclaw.json into the MC database */
+/** Sync agents from config.yaml into the MC database */
 export async function syncAgentsFromConfig(actor: string = 'system'): Promise<SyncResult> {
-  let agents: OpenClawAgent[]
+  let agents: HermesAgent[]
   try {
-    agents = await readOpenClawAgents()
+    agents = await readHermesAgents()
   } catch (err: any) {
     return { synced: 0, created: 0, updated: 0, agents: [], error: err.message }
   }
@@ -301,11 +301,11 @@ export async function syncAgentsFromConfig(actor: string = 'system'): Promise<Sy
   return { synced, created, updated, agents: results }
 }
 
-/** Preview the diff between openclaw.json and MC database without writing */
+/** Preview the diff between config.yaml and MC database without writing */
 export async function previewSyncDiff(): Promise<SyncDiff> {
-  let agents: OpenClawAgent[]
+  let agents: HermesAgent[]
   try {
-    agents = await readOpenClawAgents()
+    agents = await readHermesAgents()
   } catch {
     return { inConfig: 0, inMC: 0, newAgents: [], updatedAgents: [], onlyInMC: [] }
   }
@@ -346,10 +346,10 @@ export async function previewSyncDiff(): Promise<SyncDiff> {
   }
 }
 
-/** Write an agent config back to openclaw.json agents.list */
+/** Write an agent config back to config.yaml agents.list */
 export async function writeAgentToConfig(agentConfig: any): Promise<void> {
   const configPath = getConfigPath()
-  if (!configPath) throw new Error('OPENCLAW_CONFIG_PATH not configured')
+  if (!configPath) throw new Error('HERMES_CONFIG_PATH not configured')
 
   const { readFile, writeFile } = require('fs/promises')
   const raw = await readFile(configPath, 'utf-8')
@@ -358,13 +358,13 @@ export async function writeAgentToConfig(agentConfig: any): Promise<void> {
   if (!parsed.agents) parsed.agents = {}
   if (!parsed.agents.list) parsed.agents.list = []
 
-  const normalizedAgentConfig = normalizeAgentConfigForOpenClaw(agentConfig)
+  const normalizedAgentConfig = normalizeAgentConfigForHermes(agentConfig)
 
   // Find existing by id
   const idx = parsed.agents.list.findIndex((a: any) => a.id === normalizedAgentConfig.id)
   if (idx >= 0) {
     // Deep merge: preserve fields not in update
-    parsed.agents.list[idx] = normalizeAgentConfigForOpenClaw(
+    parsed.agents.list[idx] = normalizeAgentConfigForHermes(
       deepMerge(parsed.agents.list[idx], normalizedAgentConfig),
     )
   } else {
@@ -379,7 +379,7 @@ export async function removeAgentFromConfig(match: {
   name?: string | null
 }): Promise<{ removed: boolean }> {
   const configPath = getConfigPath()
-  if (!configPath) throw new Error('OPENCLAW_CONFIG_PATH not configured')
+  if (!configPath) throw new Error('HERMES_CONFIG_PATH not configured')
 
   const id = String(match.id || '').trim()
   const name = String(match.name || '').trim()
@@ -455,7 +455,7 @@ function normalizeModelConfig(model: unknown): unknown {
   }
 }
 
-function normalizeAgentConfigForOpenClaw(agentConfig: any): any {
+function normalizeAgentConfigForHermes(agentConfig: any): any {
   if (!agentConfig || typeof agentConfig !== 'object') return agentConfig
   if (!('model' in agentConfig)) return agentConfig
   return {

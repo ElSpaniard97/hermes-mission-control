@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, db_helpers } from '@/lib/db'
-import { runOpenClaw } from '@/lib/command'
+import { runHermes } from '@/lib/command'
 import { requireRole } from '@/lib/auth'
 import { logger } from '@/lib/logger'
 
@@ -39,7 +39,7 @@ export async function POST(
       customMessage ||
       `Wake up check-in for ${agent.name}. Please review assigned tasks and notifications.`
 
-    const { stdout, stderr } = await runOpenClaw(
+    const { stdout, stderr } = await runHermes(
       ['gateway', 'sessions_send', '--session', agent.session_key, '--message', message],
       { timeoutMs: 10000 }
     )

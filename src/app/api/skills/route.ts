@@ -84,30 +84,30 @@ function getSkillRoots(): SkillRoot[] {
     { source: 'project-agents', path: resolveSkillRoot('MC_SKILLS_PROJECT_AGENTS_DIR', join(cwd, '.agents', 'skills')) },
     { source: 'project-codex', path: resolveSkillRoot('MC_SKILLS_PROJECT_CODEX_DIR', join(cwd, '.codex', 'skills')) },
   ]
-  // Add OpenClaw gateway skill roots when configured
-  const openclawState = process.env.OPENCLAW_STATE_DIR || process.env.OPENCLAW_HOME || join(home, '.openclaw')
-  const openclawSkills = resolveSkillRoot('MC_SKILLS_OPENCLAW_DIR', join(openclawState, 'skills'))
-  roots.push({ source: 'openclaw', path: openclawSkills })
+  // Add Hermes gateway skill roots when configured
+  const hermesState = process.env.HERMES_STATE_DIR || process.env.HERMES_HOME || join(home, '.hermes')
+  const hermesSkills = resolveSkillRoot('MC_SKILLS_OPENCLAW_DIR', join(hermesState, 'skills'))
+  roots.push({ source: 'hermes', path: hermesSkills })
 
-  // Add OpenClaw workspace-local skills (takes precedence when names conflict)
-  const workspaceDir = process.env.OPENCLAW_WORKSPACE_DIR || process.env.MISSION_CONTROL_WORKSPACE_DIR || join(openclawState, 'workspace')
+  // Add Hermes workspace-local skills (takes precedence when names conflict)
+  const workspaceDir = process.env.OPENCLAW_WORKSPACE_DIR || process.env.MISSION_CONTROL_WORKSPACE_DIR || join(hermesState, 'workspace')
   const workspaceSkills = resolveSkillRoot('MC_SKILLS_WORKSPACE_DIR', join(workspaceDir, 'skills'))
   roots.push({ source: 'workspace', path: workspaceSkills })
 
   // Dynamic: scan for workspace-<agent> directories
   try {
     const { readdirSync, existsSync } = require('node:fs') as typeof import('node:fs')
-    const entries = readdirSync(openclawState) as string[]
+    const entries = readdirSync(hermesState) as string[]
     for (const entry of entries) {
       if (!entry.startsWith('workspace-')) continue
-      const skillsDir = join(openclawState, entry, 'skills')
+      const skillsDir = join(hermesState, entry, 'skills')
       if (existsSync(skillsDir)) {
         const agentName = entry.replace('workspace-', '')
         roots.push({ source: `workspace-${agentName}`, path: skillsDir })
       }
     }
   } catch {
-    // openclawBase may not exist
+    // hermesBase may not exist
   }
 
   return roots

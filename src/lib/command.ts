@@ -76,26 +76,26 @@ export function runCommand(
   })
 }
 
-export function runOpenClaw(args: string[], options: CommandOptions = {}) {
-  // Explicitly pass OPENCLAW_STATE_DIR so the CLI uses the exact resolved path.
-  // Without this, the CLI may interpret OPENCLAW_HOME as a parent directory and
-  // append ".openclaw" to it — causing double-nesting when OPENCLAW_HOME is
-  // already set to the state directory (e.g. /root/.openclaw → /root/.openclaw/.openclaw).
+export function runHermes(args: string[], options: CommandOptions = {}) {
+  // Explicitly pass HERMES_STATE_DIR so the CLI uses the exact resolved path.
+  // Without this, the CLI may interpret HERMES_HOME as a parent directory and
+  // append ".hermes" to it — causing double-nesting when HERMES_HOME is
+  // already set to the state directory (e.g. /root/.hermes → /root/.hermes/.hermes).
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    OPENCLAW_STATE_DIR: config.openclawStateDir,
+    HERMES_STATE_DIR: config.hermesStateDir,
     ...options.env,
   }
-  return runCommand(config.openclawBin, args, {
+  return runCommand(config.hermesBin, args, {
     ...options,
     env,
-    cwd: options.cwd || config.openclawStateDir || process.cwd()
+    cwd: options.cwd || config.hermesStateDir || process.cwd()
   })
 }
 
-export function runClawdbot(args: string[], options: CommandOptions = {}) {
-  return runCommand(config.clawdbotBin, args, {
+export function runHermesbot(args: string[], options: CommandOptions = {}) {
+  return runCommand(config.hermesbotBin, args, {
     ...options,
-    cwd: options.cwd || config.openclawStateDir || process.cwd()
+    cwd: options.cwd || config.hermesStateDir || process.cwd()
   })
 }

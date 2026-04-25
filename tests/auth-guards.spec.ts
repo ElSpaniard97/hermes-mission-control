@@ -28,7 +28,7 @@ const PROTECTED_GET_ENDPOINTS = [
   '/api/onboarding',
   '/api/security-scan',
   '/api/diagnostics',
-  '/api/openclaw/doctor',
+  '/api/hermes/doctor',
 ]
 
 test.describe('Auth Guards (Issue #4)', () => {

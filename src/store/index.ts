@@ -322,7 +322,7 @@ export interface OsUser {
   linked_tenant_id: number | null
   has_claude: boolean
   has_codex: boolean
-  has_openclaw: boolean
+  has_hermes: boolean
   is_process_owner: boolean
 }
 
@@ -393,13 +393,13 @@ interface MissionControlStore {
   setUpdateAvailable: (info: { latestVersion: string; releaseUrl: string; releaseNotes: string } | null) => void
   dismissUpdate: (version: string) => void
 
-  // OpenClaw update availability
-  openclawUpdate: { installed: string; latest: string; releaseUrl: string; releaseNotes: string; updateCommand: string } | null
-  openclawUpdateDismissedVersion: string | null
+  // Hermes update availability
+  hermesUpdate: { installed: string; latest: string; releaseUrl: string; releaseNotes: string; updateCommand: string } | null
+  hermesUpdateDismissedVersion: string | null
   setOpenclawUpdate: (info: { installed: string; latest: string; releaseUrl: string; releaseNotes: string; updateCommand: string } | null) => void
   dismissOpenclawUpdate: (version: string) => void
 
-  // OpenClaw Doctor banner dismiss (persisted with 24h expiry)
+  // Hermes Doctor banner dismiss (persisted with 24h expiry)
   doctorDismissedAt: number | null
   dismissDoctor: () => void
 
@@ -641,19 +641,19 @@ export const useMissionControl = create<MissionControlStore>()(
       set({ updateDismissedVersion: version })
     },
 
-    // OpenClaw update availability
-    openclawUpdate: null,
-    openclawUpdateDismissedVersion: (() => {
+    // Hermes update availability
+    hermesUpdate: null,
+    hermesUpdateDismissedVersion: (() => {
       if (typeof window === 'undefined') return null
-      try { return localStorage.getItem('mc-openclaw-update-dismissed') } catch { return null }
+      try { return localStorage.getItem('mc-hermes-update-dismissed') } catch { return null }
     })(),
-    setOpenclawUpdate: (info) => set({ openclawUpdate: info }),
+    setOpenclawUpdate: (info) => set({ hermesUpdate: info }),
     dismissOpenclawUpdate: (version) => {
-      try { localStorage.setItem('mc-openclaw-update-dismissed', version) } catch {}
-      set({ openclawUpdateDismissedVersion: version })
+      try { localStorage.setItem('mc-hermes-update-dismissed', version) } catch {}
+      set({ hermesUpdateDismissedVersion: version })
     },
 
-    // OpenClaw Doctor banner dismiss
+    // Hermes Doctor banner dismiss
     doctorDismissedAt: (() => {
       if (typeof window === 'undefined') return null
       try {

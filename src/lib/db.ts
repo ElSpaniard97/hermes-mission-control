@@ -281,7 +281,7 @@ export interface Tenant {
   linux_user: string
   plan_tier: string
   status: 'pending' | 'provisioning' | 'active' | 'suspended' | 'error'
-  openclaw_home: string
+  hermes_home: string
   workspace_root: string
   gateway_port?: number
   dashboard_port?: number

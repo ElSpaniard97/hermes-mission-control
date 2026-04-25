@@ -9,7 +9,7 @@ import { getDetectedGatewayToken } from '@/lib/gateway-runtime'
 import { parseJsonRelaxed } from '@/lib/json-relaxed'
 
 function getConfigPath(): string | null {
-  return config.openclawConfigPath || null
+  return config.hermesConfigPath || null
 }
 
 function gatewayUrl(path: string): string {
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   const configPath = getConfigPath()
   if (!configPath) {
-    return NextResponse.json({ error: 'OPENCLAW_CONFIG_PATH not configured' }, { status: 404 })
+    return NextResponse.json({ error: 'HERMES_CONFIG_PATH not configured' }, { status: 404 })
   }
 
   try {
@@ -121,7 +121,7 @@ export async function PUT(request: NextRequest) {
 
   const configPath = getConfigPath()
   if (!configPath) {
-    return NextResponse.json({ error: 'OPENCLAW_CONFIG_PATH not configured' }, { status: 404 })
+    return NextResponse.json({ error: 'HERMES_CONFIG_PATH not configured' }, { status: 404 })
   }
 
   const result = await validateBody(request, gatewayConfigUpdateSchema)

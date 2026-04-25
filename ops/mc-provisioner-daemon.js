@@ -12,7 +12,7 @@ const REPO_ROOT = process.env.MISSION_CONTROL_REPO_ROOT || path.resolve(__dirnam
 const DATA_DIR = process.env.MISSION_CONTROL_DATA_DIR || path.join(REPO_ROOT, '.data')
 const TENANT_HOME_ROOT = String(process.env.MC_TENANT_HOME_ROOT || '/home').trim() || '/home'
 const TENANT_WORKSPACE_DIRNAME = String(process.env.MC_TENANT_WORKSPACE_DIRNAME || 'workspace').trim() || 'workspace'
-const TEMPLATE_OPENCLAW_JSON = process.env.MC_SUPER_TEMPLATE_OPENCLAW_JSON || (process.env.OPENCLAW_HOME ? path.join(process.env.OPENCLAW_HOME, 'openclaw.json') : '')
+const TEMPLATE_OPENCLAW_JSON = process.env.MC_SUPER_TEMPLATE_OPENCLAW_JSON || (process.env.HERMES_HOME ? path.join(process.env.HERMES_HOME, 'config.yaml') : '')
 const GATEWAY_SYSTEMD_TEMPLATE = path.join(REPO_ROOT, 'ops', 'templates', 'openclaw-gateway@.service')
 
 if (!TOKEN) {

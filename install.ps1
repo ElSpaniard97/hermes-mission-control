@@ -326,25 +326,25 @@ function Test-OpenClaw {
     }
 
     # Check OpenClaw home directory
-    $ocHome = if ($env:OPENCLAW_HOME) { $env:OPENCLAW_HOME } else { Join-Path $HOME ".openclaw" }
+    $ocHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } else { Join-Path $HOME ".openclaw" }
     if (Test-Path $ocHome) {
         Write-Ok "OpenClaw home: $ocHome"
 
-        $ocConfig = Join-Path $ocHome "openclaw.json"
+        $ocConfig = Join-Path $ocHome "config.yaml"
         if (Test-Path $ocConfig) {
             Write-Ok "Config found: $ocConfig"
         } else {
-            Write-Warn "No openclaw.json found at $ocConfig"
+            Write-Warn "No config.yaml found at $ocConfig"
             Write-MC "Mission Control will create a default config on first gateway connection"
         }
     } else {
         Write-MC "OpenClaw home not found at $ocHome"
-        Write-MC "Set OPENCLAW_HOME in .env to point to your OpenClaw state directory"
+        Write-MC "Set HERMES_HOME in .env to point to your OpenClaw state directory"
     }
 
     # Check gateway port
-    $gwHost = if ($env:OPENCLAW_GATEWAY_HOST) { $env:OPENCLAW_GATEWAY_HOST } else { "127.0.0.1" }
-    $gwPort = if ($env:OPENCLAW_GATEWAY_PORT) { [int]$env:OPENCLAW_GATEWAY_PORT } else { 18789 }
+    $gwHost = if ($env:HERMES_GATEWAY_HOST) { $env:HERMES_GATEWAY_HOST } else { "127.0.0.1" }
+    $gwPort = if ($env:HERMES_GATEWAY_PORT) { [int]$env:HERMES_GATEWAY_PORT } else { 18789 }
     try {
         $tcp = New-Object System.Net.Sockets.TcpClient
         $tcp.Connect($gwHost, $gwPort)

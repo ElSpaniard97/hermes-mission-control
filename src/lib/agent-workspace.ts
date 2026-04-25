@@ -5,8 +5,8 @@ import { resolveWithin } from '@/lib/paths'
 
 function resolvePath(candidate: string): string {
   if (isAbsolute(candidate)) return resolve(candidate)
-  if (!config.openclawStateDir) throw new Error('OPENCLAW_STATE_DIR not configured')
-  return resolveWithin(config.openclawStateDir, candidate)
+  if (!config.hermesStateDir) throw new Error('HERMES_STATE_DIR not configured')
+  return resolveWithin(config.hermesStateDir, candidate)
 }
 
 export function getAgentWorkspaceCandidates(agentConfig: any, agentName: string): string[] {
@@ -25,15 +25,15 @@ export function getAgentWorkspaceCandidates(agentConfig: any, agentName: string)
   }
 
   const rawWorkspace = typeof agentConfig?.workspace === 'string' ? agentConfig.workspace.trim() : ''
-  const openclawIdRaw =
-    typeof agentConfig?.openclawId === 'string' && agentConfig.openclawId.trim()
-      ? agentConfig.openclawId.trim()
+  const hermesIdRaw =
+    typeof agentConfig?.hermesId === 'string' && agentConfig.hermesId.trim()
+      ? agentConfig.hermesId.trim()
       : agentName
-  const openclawId = openclawIdRaw.toLowerCase().replace(/[^a-z0-9._-]+/g, '-')
+  const hermesId = hermesIdRaw.toLowerCase().replace(/[^a-z0-9._-]+/g, '-')
 
   push(rawWorkspace || null)
-  push(`workspace-${openclawId}`)
-  push(`agents/${openclawId}`)
+  push(`workspace-${hermesId}`)
+  push(`agents/${hermesId}`)
   push('workspace')
 
   return out.filter((value) => existsSync(value))

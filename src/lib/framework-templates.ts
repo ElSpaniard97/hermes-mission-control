@@ -1,13 +1,13 @@
 /**
  * Framework-Agnostic Template System
  *
- * Extends the existing OpenClaw templates with framework-neutral archetypes
+ * Extends the existing Hermes templates with framework-neutral archetypes
  * that any adapter can use. Each framework template defines:
  *   - What the agent does (role, capabilities)
  *   - How it connects (framework-specific connection config)
  *   - What permissions it needs (tool scopes)
  *
- * The existing AGENT_TEMPLATES in agent-templates.ts remain for OpenClaw-native
+ * The existing AGENT_TEMPLATES in agent-templates.ts remain for Hermes-native
  * use. This module wraps them with a framework-aware registry.
  */
 
@@ -38,22 +38,22 @@ export interface FrameworkInfo {
 // ─── Framework Registry ─────────────────────────────────────────────────────
 
 export const FRAMEWORK_REGISTRY: Record<string, FrameworkInfo> = {
-  openclaw: {
-    id: 'openclaw',
-    label: 'OpenClaw',
+  hermes: {
+    id: 'hermes',
+    label: 'Hermes',
     description: 'Native gateway-managed agents with full lifecycle control',
-    docsUrl: 'https://github.com/openclaw/openclaw',
+    docsUrl: 'https://github.com/hermes/hermes',
     connection: {
       connectionMode: 'websocket',
       heartbeatInterval: 30,
       setupHints: [
-        'Agents are managed via the OpenClaw gateway',
-        'Config syncs bidirectionally via openclaw.json',
-        'Use "pnpm openclaw agents add" to provision',
+        'Agents are managed via the Hermes gateway',
+        'Config syncs bidirectionally via config.yaml',
+        'Use "pnpm hermes agents add" to provision',
       ],
-      exampleSnippet: `# OpenClaw agents are auto-managed by the gateway.
+      exampleSnippet: `# Hermes agents are auto-managed by the gateway.
 # No manual registration needed — sync happens automatically.
-# See: openclaw.json in your state directory.`,
+# See: config.yaml in your state directory.`,
     },
   },
   generic: {
@@ -309,8 +309,8 @@ export interface UniversalTemplate {
   frameworks: string[]
   /** Role-based capabilities (framework-agnostic) */
   capabilities: string[]
-  /** The OpenClaw template to use when framework is openclaw */
-  openclawTemplateType?: string
+  /** The Hermes template to use when framework is hermes */
+  hermesTemplateType?: string
 }
 
 /**
@@ -324,54 +324,54 @@ export const UNIVERSAL_TEMPLATES: UniversalTemplate[] = [
     label: 'Orchestrator',
     description: 'Coordinates other agents, routes tasks, and manages workflows. Full access.',
     emoji: '\ud83e\udded',
-    frameworks: ['openclaw', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
+    frameworks: ['hermes', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
     capabilities: ['task_routing', 'agent_management', 'workflow_control', 'full_access'],
-    openclawTemplateType: 'orchestrator',
+    hermesTemplateType: 'orchestrator',
   },
   {
     type: 'developer',
     label: 'Developer',
     description: 'Writes and edits code, runs builds and tests. Read-write workspace access.',
     emoji: '\ud83d\udee0\ufe0f',
-    frameworks: ['openclaw', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
+    frameworks: ['hermes', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
     capabilities: ['code_write', 'code_execute', 'testing', 'debugging'],
-    openclawTemplateType: 'developer',
+    hermesTemplateType: 'developer',
   },
   {
     type: 'reviewer',
     label: 'Reviewer / QA',
     description: 'Reviews code and validates quality. Read-only access, lightweight model.',
     emoji: '\ud83d\udd2c',
-    frameworks: ['openclaw', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
+    frameworks: ['hermes', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
     capabilities: ['code_read', 'quality_review', 'security_audit'],
-    openclawTemplateType: 'reviewer',
+    hermesTemplateType: 'reviewer',
   },
   {
     type: 'researcher',
     label: 'Researcher',
     description: 'Browses the web and gathers information. No code execution.',
     emoji: '\ud83d\udd0d',
-    frameworks: ['openclaw', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
+    frameworks: ['hermes', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
     capabilities: ['web_browse', 'data_gathering', 'summarization'],
-    openclawTemplateType: 'researcher',
+    hermesTemplateType: 'researcher',
   },
   {
     type: 'content-creator',
     label: 'Content Creator',
     description: 'Generates and edits written content. No code execution or browsing.',
     emoji: '\u270f\ufe0f',
-    frameworks: ['openclaw', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
+    frameworks: ['hermes', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
     capabilities: ['content_write', 'content_edit'],
-    openclawTemplateType: 'content-creator',
+    hermesTemplateType: 'content-creator',
   },
   {
     type: 'security-auditor',
     label: 'Security Auditor',
     description: 'Scans for vulnerabilities. Read-only with shell access for scanning tools.',
     emoji: '\ud83d\udee1\ufe0f',
-    frameworks: ['openclaw', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
+    frameworks: ['hermes', 'generic', 'langgraph', 'crewai', 'autogen', 'claude-sdk'],
     capabilities: ['code_read', 'shell_execute', 'security_scan'],
-    openclawTemplateType: 'security-auditor',
+    hermesTemplateType: 'security-auditor',
   },
 ]
 
@@ -406,8 +406,8 @@ export function listFrameworks(): FrameworkInfo[] {
 }
 
 /**
- * Resolve a universal template to its OpenClaw-specific config (if applicable).
- * For non-OpenClaw frameworks, returns the universal template metadata
+ * Resolve a universal template to its Hermes-specific config (if applicable).
+ * For non-Hermes frameworks, returns the universal template metadata
  * since config is managed externally by the framework.
  */
 export function resolveTemplateConfig(
@@ -418,8 +418,8 @@ export function resolveTemplateConfig(
   if (!universal) return undefined
   if (!universal.frameworks.includes(framework)) return undefined
 
-  if (framework === 'openclaw' && universal.openclawTemplateType) {
-    const template = AGENT_TEMPLATES.find(t => t.type === universal.openclawTemplateType)
+  if (framework === 'hermes' && universal.hermesTemplateType) {
+    const template = AGENT_TEMPLATES.find(t => t.type === universal.hermesTemplateType)
     return { template, universal }
   }
 

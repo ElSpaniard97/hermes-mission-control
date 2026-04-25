@@ -29,7 +29,7 @@ interface ScanResult {
   categories: {
     credentials: Category
     network: Category
-    openclaw: Category
+    hermes: Category
     runtime: Category
     os: Category
   }
@@ -78,7 +78,7 @@ const OVERALL_COLOR: Record<string, string> = {
 const CATEGORY_LABELS: Record<string, { label: string; icon: string }> = {
   credentials: { label: 'Credentials', icon: 'K' },
   network: { label: 'Network', icon: 'N' },
-  openclaw: { label: 'OpenClaw', icon: 'O' },
+  hermes: { label: 'Hermes', icon: 'O' },
   runtime: { label: 'Runtime', icon: 'R' },
   os: { label: 'OS Security', icon: 'S' },
 }
@@ -180,7 +180,7 @@ export function SecurityScanCard({ compact = false, autoScan = false }: { compac
       <div className="flex flex-col items-center gap-4 py-6">
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-1">Run a comprehensive security scan of your installation</p>
-          <p className="text-xs text-muted-foreground/60">Checks credentials, network config, OpenClaw hardening, and runtime security</p>
+          <p className="text-xs text-muted-foreground/60">Checks credentials, network config, Hermes hardening, and runtime security</p>
         </div>
         <Button onClick={runScan} variant="outline" size="sm" className="border-void-cyan/30 text-void-cyan hover:bg-void-cyan/10">
           Run Security Scan

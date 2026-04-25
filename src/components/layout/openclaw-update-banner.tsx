@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button'
 
 type UpdateState = 'idle' | 'updating' | 'success' | 'error'
 
-export function OpenClawUpdateBanner() {
-  const { openclawUpdate, openclawUpdateDismissedVersion, dismissOpenclawUpdate, setOpenclawUpdate } = useMissionControl()
-  const t = useTranslations('openclawUpdateBanner')
+export function HermesUpdateBanner() {
+  const { hermesUpdate, hermesUpdateDismissedVersion, dismissOpenclawUpdate, setOpenclawUpdate } = useMissionControl()
+  const t = useTranslations('hermesUpdateBanner')
   const tc = useTranslations('common')
   const [copied, setCopied] = useState(false)
   const [state, setState] = useState<UpdateState>('idle')
@@ -17,11 +17,11 @@ export function OpenClawUpdateBanner() {
   const [newVersion, setNewVersion] = useState<string | null>(null)
   const [showChangelog, setShowChangelog] = useState(false)
 
-  if (!openclawUpdate) return null
-  if (openclawUpdateDismissedVersion === openclawUpdate.latest) return null
+  if (!hermesUpdate) return null
+  if (hermesUpdateDismissedVersion === hermesUpdate.latest) return null
 
   function handleCopy() {
-    navigator.clipboard.writeText(openclawUpdate!.updateCommand).then(() => {
+    navigator.clipboard.writeText(hermesUpdate!.updateCommand).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }).catch(() => {})
@@ -32,7 +32,7 @@ export function OpenClawUpdateBanner() {
     setErrorMsg(null)
 
     try {
-      const res = await fetch('/api/openclaw/update', { method: 'POST' })
+      const res = await fetch('/api/hermes/update', { method: 'POST' })
       const data = await res.json()
 
       if (!res.ok) {
@@ -59,11 +59,11 @@ export function OpenClawUpdateBanner() {
         <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shrink-0" />
         <p className="flex-1 text-xs text-cyan-300">
           {state === 'updating' && (
-            <span className="font-medium text-amber-300">{t('updatingOpenClaw')}</span>
+            <span className="font-medium text-amber-300">{t('updatingHermes')}</span>
           )}
           {state === 'success' && (
             <span className="font-medium text-emerald-300">
-              {t('openclawUpdated', { version: newVersion || openclawUpdate.latest })}
+              {t('hermesUpdated', { version: newVersion || hermesUpdate.latest })}
             </span>
           )}
           {state === 'error' && (
@@ -72,9 +72,9 @@ export function OpenClawUpdateBanner() {
           {state === 'idle' && (
             <>
               <span className="font-medium text-cyan-200">
-                {t('openclawUpdateAvailable', { version: openclawUpdate.latest })}
+                {t('hermesUpdateAvailable', { version: hermesUpdate.latest })}
               </span>
-              {' ('}{t('installed', { version: openclawUpdate.installed })}{')'}
+              {' ('}{t('installed', { version: hermesUpdate.installed })}{')'}
             </>
           )}
         </p>
@@ -86,7 +86,7 @@ export function OpenClawUpdateBanner() {
             >
               {tc('updateNow')}
             </button>
-            {openclawUpdate.releaseNotes && (
+            {hermesUpdate.releaseNotes && (
               <button
                 onClick={() => setShowChangelog(v => !v)}
                 className="shrink-0 text-2xs font-medium text-cyan-400 hover:text-cyan-300 px-2 py-1 rounded border border-cyan-500/20 hover:border-cyan-500/40 transition-colors"
@@ -101,7 +101,7 @@ export function OpenClawUpdateBanner() {
               {copied ? t('copied') : t('copyCommand')}
             </button>
             <a
-              href={openclawUpdate.releaseUrl}
+              href={hermesUpdate.releaseUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 text-2xs font-medium text-cyan-400 hover:text-cyan-300 px-2 py-1 rounded border border-cyan-500/20 hover:border-cyan-500/40 transition-colors"
@@ -111,7 +111,7 @@ export function OpenClawUpdateBanner() {
             <Button
               variant="ghost"
               size="icon-xs"
-              onClick={() => dismissOpenclawUpdate(openclawUpdate.latest)}
+              onClick={() => dismissOpenclawUpdate(hermesUpdate.latest)}
               className="shrink-0 text-cyan-400/60 hover:text-cyan-300 hover:bg-transparent"
               title={tc('dismiss')}
             >
@@ -128,9 +128,9 @@ export function OpenClawUpdateBanner() {
           </svg>
         )}
       </div>
-      {showChangelog && openclawUpdate.releaseNotes && (
+      {showChangelog && hermesUpdate.releaseNotes && (
         <div className="mt-1 px-4 py-3 rounded-lg bg-cyan-500/5 border border-cyan-500/10 text-xs text-cyan-300/80 whitespace-pre-wrap max-h-64 overflow-y-auto">
-          {openclawUpdate.releaseNotes}
+          {hermesUpdate.releaseNotes}
         </div>
       )}
     </div>

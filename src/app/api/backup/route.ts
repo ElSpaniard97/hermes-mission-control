@@ -6,7 +6,7 @@ import { join, dirname } from 'path'
 import { readdirSync, statSync, unlinkSync } from 'fs'
 import { heavyLimiter } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
-import { runOpenClaw } from '@/lib/command'
+import { runHermes } from '@/lib/command'
 
 const BACKUP_DIR = join(dirname(config.dbPath), 'backups')
 const MAX_BACKUPS = 10
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
   const target = request.nextUrl.searchParams.get('target')
 
-  // Gateway state backup via `openclaw backup create`
+  // Gateway state backup via `hermes backup create`
   if (target === 'gateway') {
     ensureDirExists(BACKUP_DIR)
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
@@ -59,11 +59,11 @@ export async function POST(request: NextRequest) {
       let stdout: string
       let stderr: string
       try {
-        const result = await runOpenClaw(['backup', 'create', '--output', BACKUP_DIR], { timeoutMs: 60000 })
+        const result = await runHermes(['backup', 'create', '--output', BACKUP_DIR], { timeoutMs: 60000 })
         stdout = result.stdout
         stderr = result.stderr
       } catch (error: any) {
-        // openclaw backup may exit non-zero despite success — check output
+        // hermes backup may exit non-zero despite success — check output
         stdout = error.stdout || ''
         stderr = error.stderr || ''
         const combined = `${stdout}\n${stderr}`
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       const output = (stdout || stderr).trim()
 
       logAuditEvent({
-        action: 'openclaw.backup',
+        action: 'hermes.backup',
         actor: auth.user.username,
         actor_id: auth.user.id,
         detail: { output },

@@ -10,8 +10,8 @@ import { logger } from '@/lib/logger';
 
 function resolveAgentWorkspacePath(workspace: string): string {
   if (isAbsolute(workspace)) return resolve(workspace)
-  if (!config.openclawStateDir) throw new Error('OPENCLAW_STATE_DIR not configured')
-  return resolveWithin(config.openclawStateDir, workspace)
+  if (!config.hermesStateDir) throw new Error('HERMES_STATE_DIR not configured')
+  return resolveWithin(config.hermesStateDir, workspace)
 }
 
 /**

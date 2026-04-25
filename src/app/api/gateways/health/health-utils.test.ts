@@ -92,14 +92,14 @@ function buildGatewayProbeUrl(host: string, port: number): string | null {
 }
 
 function parseGatewayVersion(headers: Record<string, string | null>): string | null {
-  const direct = headers['x-openclaw-version'] || headers['x-clawdbot-version']
+  const direct = headers['x-hermes-version'] || headers['x-hermesbot-version']
   if (direct) return direct.trim()
   const server = headers['server'] || ''
   const m = server.match(/(\d{4}\.\d+\.\d+)/)
   return m?.[1] || null
 }
 
-function hasOpenClaw32ToolsProfileRisk(version: string | null): boolean {
+function hasHermes32ToolsProfileRisk(version: string | null): boolean {
   if (!version) return false
   const m = version.match(/^(\d{4})\.(\d+)\.(\d+)/)
   if (!m) return false
@@ -225,46 +225,46 @@ describe('buildGatewayProbeUrl', () => {
 })
 
 describe('parseGatewayVersion', () => {
-  it('reads x-openclaw-version header', () => {
-    expect(parseGatewayVersion({ 'x-openclaw-version': '2026.3.7', 'server': null, 'x-clawdbot-version': null })).toBe('2026.3.7')
+  it('reads x-hermes-version header', () => {
+    expect(parseGatewayVersion({ 'x-hermes-version': '2026.3.7', 'server': null, 'x-hermesbot-version': null })).toBe('2026.3.7')
   })
 
-  it('reads x-clawdbot-version header', () => {
-    expect(parseGatewayVersion({ 'x-openclaw-version': null, 'x-clawdbot-version': '2026.2.1', 'server': null })).toBe('2026.2.1')
+  it('reads x-hermesbot-version header', () => {
+    expect(parseGatewayVersion({ 'x-hermes-version': null, 'x-hermesbot-version': '2026.2.1', 'server': null })).toBe('2026.2.1')
   })
 
   it('extracts version from server header', () => {
-    expect(parseGatewayVersion({ 'x-openclaw-version': null, 'x-clawdbot-version': null, 'server': 'openclaw/2026.3.5' })).toBe('2026.3.5')
+    expect(parseGatewayVersion({ 'x-hermes-version': null, 'x-hermesbot-version': null, 'server': 'hermes/2026.3.5' })).toBe('2026.3.5')
   })
 
   it('returns null when no version headers', () => {
-    expect(parseGatewayVersion({ 'x-openclaw-version': null, 'x-clawdbot-version': null, 'server': null })).toBeNull()
+    expect(parseGatewayVersion({ 'x-hermes-version': null, 'x-hermesbot-version': null, 'server': null })).toBeNull()
   })
 })
 
-describe('hasOpenClaw32ToolsProfileRisk', () => {
+describe('hasHermes32ToolsProfileRisk', () => {
   it('returns false for null version', () => {
-    expect(hasOpenClaw32ToolsProfileRisk(null)).toBe(false)
+    expect(hasHermes32ToolsProfileRisk(null)).toBe(false)
   })
 
   it('returns false for versions before 2026.3.2', () => {
-    expect(hasOpenClaw32ToolsProfileRisk('2026.3.1')).toBe(false)
-    expect(hasOpenClaw32ToolsProfileRisk('2026.2.9')).toBe(false)
-    expect(hasOpenClaw32ToolsProfileRisk('2025.10.0')).toBe(false)
+    expect(hasHermes32ToolsProfileRisk('2026.3.1')).toBe(false)
+    expect(hasHermes32ToolsProfileRisk('2026.2.9')).toBe(false)
+    expect(hasHermes32ToolsProfileRisk('2025.10.0')).toBe(false)
   })
 
   it('returns true for version 2026.3.2', () => {
-    expect(hasOpenClaw32ToolsProfileRisk('2026.3.2')).toBe(true)
+    expect(hasHermes32ToolsProfileRisk('2026.3.2')).toBe(true)
   })
 
   it('returns true for versions after 2026.3.2', () => {
-    expect(hasOpenClaw32ToolsProfileRisk('2026.3.7')).toBe(true)
-    expect(hasOpenClaw32ToolsProfileRisk('2026.4.0')).toBe(true)
-    expect(hasOpenClaw32ToolsProfileRisk('2027.1.0')).toBe(true)
+    expect(hasHermes32ToolsProfileRisk('2026.3.7')).toBe(true)
+    expect(hasHermes32ToolsProfileRisk('2026.4.0')).toBe(true)
+    expect(hasHermes32ToolsProfileRisk('2027.1.0')).toBe(true)
   })
 
   it('returns false for unrecognized version format', () => {
-    expect(hasOpenClaw32ToolsProfileRisk('invalid')).toBe(false)
-    expect(hasOpenClaw32ToolsProfileRisk('')).toBe(false)
+    expect(hasHermes32ToolsProfileRisk('invalid')).toBe(false)
+    expect(hasHermes32ToolsProfileRisk('')).toBe(false)
   })
 })

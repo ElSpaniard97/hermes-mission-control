@@ -42,16 +42,16 @@ const INTEGRATION_PROBE_TTL_MS = 5000
 
 const INTEGRATIONS: IntegrationDef[] = [
   // AI Providers
-  { id: 'anthropic', name: 'Anthropic', category: 'ai', envVars: ['ANTHROPIC_API_KEY'], vaultItem: 'openclaw-anthropic-api-key', testable: true },
-  { id: 'openai', name: 'OpenAI', category: 'ai', envVars: ['OPENAI_API_KEY'], vaultItem: 'openclaw-openai-api-key', testable: true },
-  { id: 'openrouter', name: 'OpenRouter', category: 'ai', envVars: ['OPENROUTER_API_KEY'], vaultItem: 'openclaw-openrouter-api-key', testable: true },
-  { id: 'venice', name: 'Venice AI', category: 'ai', envVars: ['VENICE_API_KEY'], vaultItem: 'openclaw-venice-api-key', testable: true },
-  { id: 'nvidia', name: 'NVIDIA', category: 'ai', envVars: ['NVIDIA_API_KEY'], vaultItem: 'openclaw-nvidia-api-key' },
-  { id: 'moonshot', name: 'Moonshot / Kimi', category: 'ai', envVars: ['MOONSHOT_API_KEY'], vaultItem: 'openclaw-moonshot-api-key' },
-  { id: 'ollama', name: 'Ollama (Local)', category: 'ai', envVars: ['OLLAMA_API_KEY'], vaultItem: 'openclaw-ollama-api-key' },
+  { id: 'anthropic', name: 'Anthropic', category: 'ai', envVars: ['ANTHROPIC_API_KEY'], vaultItem: 'hermes-anthropic-api-key', testable: true },
+  { id: 'openai', name: 'OpenAI', category: 'ai', envVars: ['OPENAI_API_KEY'], vaultItem: 'hermes-openai-api-key', testable: true },
+  { id: 'openrouter', name: 'OpenRouter', category: 'ai', envVars: ['OPENROUTER_API_KEY'], vaultItem: 'hermes-openrouter-api-key', testable: true },
+  { id: 'venice', name: 'Venice AI', category: 'ai', envVars: ['VENICE_API_KEY'], vaultItem: 'hermes-venice-api-key', testable: true },
+  { id: 'nvidia', name: 'NVIDIA', category: 'ai', envVars: ['NVIDIA_API_KEY'], vaultItem: 'hermes-nvidia-api-key' },
+  { id: 'moonshot', name: 'Moonshot / Kimi', category: 'ai', envVars: ['MOONSHOT_API_KEY'], vaultItem: 'hermes-moonshot-api-key' },
+  { id: 'ollama', name: 'Ollama (Local)', category: 'ai', envVars: ['OLLAMA_API_KEY'], vaultItem: 'hermes-ollama-api-key' },
 
   // Search
-  { id: 'brave', name: 'Brave Search', category: 'search', envVars: ['BRAVE_API_KEY'], vaultItem: 'openclaw-brave-api-key' },
+  { id: 'brave', name: 'Brave Search', category: 'search', envVars: ['BRAVE_API_KEY'], vaultItem: 'hermes-brave-api-key' },
 
   // Social
   {
@@ -64,10 +64,10 @@ const INTEGRATIONS: IntegrationDef[] = [
   { id: 'linkedin', name: 'LinkedIn', category: 'social', envVars: ['LINKEDIN_ACCESS_TOKEN'] },
 
   // Messaging — add entries here for each Telegram bot you run
-  { id: 'telegram', name: 'Telegram', category: 'messaging', envVars: ['TELEGRAM_BOT_TOKEN'], vaultItem: 'openclaw-telegram-bot-token', testable: true },
+  { id: 'telegram', name: 'Telegram', category: 'messaging', envVars: ['TELEGRAM_BOT_TOKEN'], vaultItem: 'hermes-telegram-bot-token', testable: true },
 
   // Dev Tools
-  { id: 'github', name: 'GitHub', category: 'devtools', envVars: ['GITHUB_TOKEN'], vaultItem: 'openclaw-github-token', testable: true },
+  { id: 'github', name: 'GitHub', category: 'devtools', envVars: ['GITHUB_TOKEN'], vaultItem: 'hermes-github-token', testable: true },
 
   // Productivity
   {
@@ -83,7 +83,7 @@ const INTEGRATIONS: IntegrationDef[] = [
   { id: 'onepassword', name: '1Password', category: 'security', envVars: ['OP_SERVICE_ACCOUNT_TOKEN'] },
 
   // Infrastructure
-  { id: 'gateway', name: 'Gateway Auth', category: 'infra', envVars: ['OPENCLAW_GATEWAY_TOKEN'], vaultItem: 'openclaw-openclaw-gateway-token' },
+  { id: 'gateway', name: 'Gateway Auth', category: 'infra', envVars: ['HERMES_GATEWAY_TOKEN'], vaultItem: 'hermes-hermes-gateway-token' },
 
   // Browser Automation
   { id: 'hyperbrowser', name: 'Hyperbrowser', category: 'browser', envVars: ['HYPERBROWSER_API_KEY'], testable: true, recommendation: 'Cloud browser automation for AI agents. Get a key at hyperbrowser.ai' },
@@ -149,8 +149,8 @@ function serializeEnv(lines: EnvLine[]): string {
 }
 
 function getEnvPath(): string | null {
-  if (!config.openclawStateDir) return null
-  return join(config.openclawStateDir, '.env')
+  if (!config.hermesStateDir) return null
+  return join(config.hermesStateDir, '.env')
 }
 
 async function readEnvFile(): Promise<{ lines: EnvLine[]; raw: string } | null> {
@@ -284,14 +284,14 @@ function checkOpAvailable(): boolean {
 
 /**
  * Build env for op CLI. The OP_SERVICE_ACCOUNT_TOKEN may live in the
- * OpenClaw .env (not the MC .env that systemd loads). Read it at
+ * Hermes .env (not the MC .env that systemd loads). Read it at
  * runtime so the op CLI can authenticate.
  */
 async function getOpEnv(): Promise<NodeJS.ProcessEnv> {
   const base: NodeJS.ProcessEnv = { ...process.env }
   // Already in process env? Use it.
   if (base.OP_SERVICE_ACCOUNT_TOKEN) return base
-  // Try reading from the OpenClaw .env
+  // Try reading from the Hermes .env
   const envData = await readEnvFile()
   if (envData) {
     for (const line of envData.lines) {
@@ -314,7 +314,7 @@ export async function GET(request: NextRequest) {
 
   const envData = await readEnvFile()
   if (!envData) {
-    return NextResponse.json({ error: 'OPENCLAW_STATE_DIR not configured' }, { status: 404 })
+    return NextResponse.json({ error: 'HERMES_STATE_DIR not configured' }, { status: 404 })
   }
 
   const envMap = new Map<string, string>()
@@ -486,7 +486,7 @@ export async function PUT(request: NextRequest) {
 
   const envData = await readEnvFile()
   if (!envData) {
-    return NextResponse.json({ error: 'OPENCLAW_STATE_DIR not configured' }, { status: 404 })
+    return NextResponse.json({ error: 'HERMES_STATE_DIR not configured' }, { status: 404 })
   }
 
   const { lines } = envData
@@ -549,7 +549,7 @@ export async function DELETE(request: NextRequest) {
 
   const envData = await readEnvFile()
   if (!envData) {
-    return NextResponse.json({ error: 'OPENCLAW_STATE_DIR not configured' }, { status: 404 })
+    return NextResponse.json({ error: 'HERMES_STATE_DIR not configured' }, { status: 404 })
   }
 
   const removed: string[] = []
@@ -648,7 +648,7 @@ async function handleTest(
 
   const envData = await readEnvFile()
   if (!envData) {
-    return NextResponse.json({ error: 'OPENCLAW_STATE_DIR not configured' }, { status: 404 })
+    return NextResponse.json({ error: 'HERMES_STATE_DIR not configured' }, { status: 404 })
   }
 
   const envMap = new Map<string, string>()
@@ -876,7 +876,7 @@ async function handlePull(
     // Write to .env
     const envData = await readEnvFile()
     if (!envData) {
-      return NextResponse.json({ error: 'OPENCLAW_STATE_DIR not configured' }, { status: 404 })
+      return NextResponse.json({ error: 'HERMES_STATE_DIR not configured' }, { status: 404 })
     }
 
     const { lines } = envData
@@ -945,7 +945,7 @@ async function handlePullAll(
 
   const envData = await readEnvFile()
   if (!envData) {
-    return NextResponse.json({ error: 'OPENCLAW_STATE_DIR not configured' }, { status: 404 })
+    return NextResponse.json({ error: 'HERMES_STATE_DIR not configured' }, { status: 404 })
   }
 
   const { lines } = envData

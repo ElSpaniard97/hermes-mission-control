@@ -90,7 +90,7 @@ docker run -p 3000:3000 \
   -e AUTH_USER=admin \
   -e AUTH_PASS=your-secure-password \
   -e API_KEY=your-api-key \
-  -e OPENCLAW_GATEWAY_HOST=host.docker.internal \
+  -e HERMES_GATEWAY_HOST=host.docker.internal \
   --add-host=host.docker.internal:host-gateway \
   mission-control
 ```
@@ -106,7 +106,7 @@ The Docker image:
 
 MC inside Docker needs to reach the gateway running on the host. There are **two** connections:
 
-1. **Server-side** (MC backend → gateway): Set `OPENCLAW_GATEWAY_HOST=host.docker.internal`.
+1. **Server-side** (MC backend → gateway): Set `HERMES_GATEWAY_HOST=host.docker.internal`.
    Docker Desktop (macOS/Windows) resolves this automatically. On Linux, `docker-compose.yml`
    maps it via `extra_hosts`.
 
@@ -116,7 +116,7 @@ MC inside Docker needs to reach the gateway running on the host. There are **two
    For remote access, set `NEXT_PUBLIC_GATEWAY_HOST` to the public hostname.
 
 If your gateway runs in **another container**, put both on the same Docker network and set
-`OPENCLAW_GATEWAY_HOST` to the gateway container name.
+`HERMES_GATEWAY_HOST` to the gateway container name.
 
 ### Persistent Data
 
@@ -145,22 +145,22 @@ See `.env.example` for the full list. Key variables:
 | `AUTH_PASS_B64` | No | - | Base64-encoded admin password (overrides `AUTH_PASS` if set) |
 | `API_KEY` | Yes | - | API key for headless access |
 | `PORT` | No | `3005` (direct) / `3000` (Docker) | Server port |
-| `OPENCLAW_HOME` | No | - | Legacy: parent home directory containing `.openclaw/`. Use `OPENCLAW_STATE_DIR` instead (see note below) |
-| `OPENCLAW_STATE_DIR` | No | `~/.openclaw` | Exact path to the OpenClaw state directory. Preferred over `OPENCLAW_HOME` — avoids double-nesting when the path already ends in `.openclaw` |
+| `HERMES_HOME` | No | - | Legacy: parent home directory containing `.hermes/`. Use `HERMES_STATE_DIR` instead (see note below) |
+| `HERMES_STATE_DIR` | No | `~/.hermes` | Exact path to the Hermes state directory. Preferred over `HERMES_HOME` — avoids double-nesting when the path already ends in `.hermes` |
 | `MISSION_CONTROL_DATA_DIR` | No | `.data/` | Directory for all Mission Control data files (DB, tokens, etc.). Use an absolute path with the standalone server to survive rebuilds. |
 | `MC_ALLOWED_HOSTS` | No | `localhost,127.0.0.1` | Allowed hosts in production |
 
-> **Note — `OPENCLAW_HOME` vs `OPENCLAW_STATE_DIR`**
+> **Note — `HERMES_HOME` vs `HERMES_STATE_DIR`**
 >
-> Mission Control supports two env vars for locating OpenClaw:
+> Mission Control supports two env vars for locating Hermes:
 >
-> - `OPENCLAW_HOME` — treated as the *parent* home directory; `.openclaw` is appended automatically.
->   Setting `OPENCLAW_HOME=/root/.openclaw` will resolve to `/root/.openclaw/.openclaw` (**double-nesting bug**).
-> - `OPENCLAW_STATE_DIR` — treated as the *exact* state directory path. Always prefer this.
+> - `HERMES_HOME` — treated as the *parent* home directory; `.hermes` is appended automatically.
+>   Setting `HERMES_HOME=/root/.hermes` will resolve to `/root/.hermes/.hermes` (**double-nesting bug**).
+> - `HERMES_STATE_DIR` — treated as the *exact* state directory path. Always prefer this.
 >
 > **Recommended `.env` for a standard install:**
 > ```env
-> OPENCLAW_STATE_DIR=/root/.openclaw
+> HERMES_STATE_DIR=/root/.hermes
 > MISSION_CONTROL_DATA_DIR=/absolute/path/to/.data
 > ```
 > Using an absolute path for `MISSION_CONTROL_DATA_DIR` ensures your
@@ -192,7 +192,7 @@ When running Mission Control alongside a gateway as containers in the same pod (
 AUTH_USER=admin
 AUTH_PASS=<secure-password>
 API_KEY=<your-api-key>
-OPENCLAW_GATEWAY_HOST=127.0.0.1
+HERMES_GATEWAY_HOST=127.0.0.1
 NEXT_PUBLIC_GATEWAY_PORT=18789
 ```
 
@@ -225,7 +225,7 @@ curl -X POST http://localhost:3000/api/connect \
   -H "Authorization: Bearer <API_KEY>" \
   -H "Content-Type: application/json" \
   -d '{
-    "tool_name": "openclaw-gateway",
+    "tool_name": "hermes-gateway",
     "agent_name": "developer-1",
     "agent_role": "developer"
   }'
@@ -277,12 +277,12 @@ pnpm install
    ```bash
    docker exec mission-control env | grep -i gateway
    ```
-   You should see `OPENCLAW_GATEWAY_HOST=host.docker.internal`.
+   You should see `HERMES_GATEWAY_HOST=host.docker.internal`.
 
-3. If using a **mounted `~/.openclaw`** directory, the `openclaw.json` inside may have
+3. If using a **mounted `~/.hermes`** directory, the `config.yaml` inside may have
    `gateway.host = "127.0.0.1"` — this is the host's loopback, not reachable from the
-   container. Environment variables take precedence over `openclaw.json`, so set
-   `OPENCLAW_GATEWAY_HOST=host.docker.internal` in your `.env` or docker-compose.
+   container. Environment variables take precedence over `config.yaml`, so set
+   `HERMES_GATEWAY_HOST=host.docker.internal` in your `.env` or docker-compose.
 
 4. **Browser WebSocket**: MC automatically rewrites Docker-internal hostnames
    (`host.docker.internal`, `host-gateway`) to the browser's hostname. If the browser

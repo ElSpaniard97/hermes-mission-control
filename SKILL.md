@@ -204,7 +204,7 @@ Note: Moving a task to `done` via PUT requires an Aegis quality review approval.
 | PUT | operator | Update skill content. Body: `{ source, name, content }` |
 | DELETE `?source=...&name=...` | operator | Delete a skill |
 
-**Skill sources:** `user-agents`, `user-codex`, `project-agents`, `project-codex`, `openclaw`
+**Skill sources:** `user-agents`, `user-codex`, `project-agents`, `project-codex`, `hermes`
 
 ### Status — `/api/status`
 
@@ -240,7 +240,7 @@ x-api-key: <key>
 }
 ```
 
-**Available frameworks:** `generic`, `openclaw`, `crewai`, `langgraph`, `autogen`, `claude-sdk`
+**Available frameworks:** `generic`, `hermes`, `crewai`, `langgraph`, `autogen`, `claude-sdk`
 
 **Available actions:** `register`, `heartbeat`, `report`, `assignments`, `disconnect`
 
@@ -261,10 +261,10 @@ All adapters implement the same `FrameworkAdapter` interface — choose the one 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `API_KEY` | — | API key for agent/script authentication |
-| `OPENCLAW_GATEWAY_HOST` | `127.0.0.1` | Gateway host address |
-| `OPENCLAW_GATEWAY_PORT` | `18789` | Gateway port |
-| `OPENCLAW_STATE_DIR` | `~/.openclaw` | OpenClaw state directory |
-| `OPENCLAW_CONFIG_PATH` | `<state-dir>/openclaw.json` | Gateway config file path |
+| `HERMES_GATEWAY_HOST` | `127.0.0.1` | Gateway host address |
+| `HERMES_GATEWAY_PORT` | `18789` | Gateway port |
+| `HERMES_STATE_DIR` | `~/.hermes` | Hermes state directory |
+| `HERMES_CONFIG_PATH` | `<state-dir>/config.yaml` | Gateway config file path |
 | `MC_CLAUDE_HOME` | `~/.claude` | Claude home directory |
 
 ## Real-Time Events

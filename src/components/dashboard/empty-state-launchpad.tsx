@@ -37,7 +37,7 @@ export function EmptyStateLaunchpad({ agentCount, taskCount, onNavigate }: Props
           .then(r => r.ok ? r.json() : {})
           .then((caps: Record<string, unknown>) => {
             const detected: RuntimeStatus[] = []
-            if (caps.openclawHome) detected.push({ id: 'openclaw', name: 'OpenClaw', installed: true })
+            if (caps.hermesHome) detected.push({ id: 'hermes', name: 'Hermes', installed: true })
             if (caps.hermesInstalled) detected.push({ id: 'hermes', name: 'Hermes Agent', installed: true })
             if (caps.claudeHome) detected.push({ id: 'claude', name: 'Claude Code', installed: true })
             setRuntimes(detected)

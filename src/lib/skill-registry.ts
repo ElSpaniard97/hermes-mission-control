@@ -1,5 +1,5 @@
 /**
- * Skill Registry Client — Proxied search & install for ClawdHub, skills.sh, and Awesome OpenClaw
+ * Skill Registry Client — Proxied search & install for HermesHub, skills.sh, and Awesome Hermes
  *
  * All external requests are server-side only (no direct browser→registry calls).
  * Includes content validation and security scanning on download.
@@ -16,7 +16,7 @@ import { logger } from './logger'
 // Types
 // ---------------------------------------------------------------------------
 
-export type RegistrySource = 'clawhub' | 'skills-sh' | 'awesome-openclaw'
+export type RegistrySource = 'clawhub' | 'skills-sh' | 'awesome-hermes'
 
 export interface RegistrySkill {
   slug: string
@@ -189,18 +189,18 @@ export function checkSkillSecurity(content: string): SecurityReport {
 
 const CLAWHUB_API = 'https://clawhub.ai/api'
 const SKILLS_SH_API = 'https://skills.sh/api'
-const AWESOME_OPENCLAW_README = 'https://raw.githubusercontent.com/VoltAgent/awesome-openclaw-skills/main/README.md'
-const AWESOME_OPENCLAW_RAW_BASE = 'https://raw.githubusercontent.com/openclaw/skills/main/skills'
+const AWESOME_OPENCLAW_README = 'https://raw.githubusercontent.com/VoltAgent/awesome-hermes-skills/main/README.md'
+const AWESOME_OPENCLAW_RAW_BASE = 'https://raw.githubusercontent.com/hermes/skills/main/skills'
 const FETCH_TIMEOUT = 10_000
 
 // ---------------------------------------------------------------------------
-// Awesome OpenClaw — in-memory cached index from GitHub README
+// Awesome Hermes — in-memory cached index from GitHub README
 // ---------------------------------------------------------------------------
 
 const AWESOME_CACHE_TTL = 15 * 60 * 1000 // 15 minutes
 let awesomeCache: { skills: RegistrySkill[]; fetchedAt: number } | null = null
 
-const AWESOME_ENTRY_RE = /^- \[([^\]]+)\]\(https:\/\/github\.com\/openclaw\/skills\/tree\/main\/skills\/([^/]+)\/([^/]+)\/SKILL\.md\)\s*-\s*(.+)$/gm
+const AWESOME_ENTRY_RE = /^- \[([^\]]+)\]\(https:\/\/github\.com\/hermes\/skills\/tree\/main\/skills\/([^/]+)\/([^/]+)\/SKILL\.md\)\s*-\s*(.+)$/gm
 
 function parseAwesomeReadme(markdown: string): RegistrySkill[] {
   const skills: RegistrySkill[] = []
@@ -213,7 +213,7 @@ function parseAwesomeReadme(markdown: string): RegistrySkill[] {
       description: description.trim(),
       author,
       version: 'latest',
-      source: 'awesome-openclaw',
+      source: 'awesome-hermes',
     })
   }
   return skills
@@ -239,7 +239,7 @@ async function fetchAwesomeIndex(): Promise<RegistrySkill[]> {
     awesomeCache = { skills, fetchedAt: now }
     return skills
   } catch (err: any) {
-    logger.warn({ err: err.message }, 'Awesome OpenClaw fetch error')
+    logger.warn({ err: err.message }, 'Awesome Hermes fetch error')
     if (awesomeCache) return awesomeCache.skills // stale fallback
     return []
   }
@@ -253,13 +253,13 @@ async function searchAwesomeOpenclaw(query: string): Promise<RegistrySearchResul
     s.description.toLowerCase().includes(q) ||
     s.author.toLowerCase().includes(q)
   ).slice(0, 50)
-  return { skills: matched, total: matched.length, source: 'awesome-openclaw' }
+  return { skills: matched, total: matched.length, source: 'awesome-hermes' }
 }
 
 async function fetchAwesomeOpenclawSkill(slug: string): Promise<{ content: string }> {
   const url = `${AWESOME_OPENCLAW_RAW_BASE}/${slug}/SKILL.md`
   const res = await fetchWithTimeout(url)
-  if (!res.ok) throw new Error(`Awesome OpenClaw skill fetch failed (${res.status})`)
+  if (!res.ok) throw new Error(`Awesome Hermes skill fetch failed (${res.status})`)
   const content = await res.text()
   return { content }
 }
@@ -274,8 +274,8 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}): Promise
   }
 }
 
-async function searchClawdHub(query: string): Promise<RegistrySearchResult> {
-  // ClawdHub current API: /api/search?q=... (legacy /skills/search now 404s)
+async function searchHermesHub(query: string): Promise<RegistrySearchResult> {
+  // HermesHub current API: /api/search?q=... (legacy /skills/search now 404s)
   const urls = [
     `${CLAWHUB_API}/search?q=${encodeURIComponent(query)}`,
     `${CLAWHUB_API}/search?query=${encodeURIComponent(query)}`,
@@ -286,7 +286,7 @@ async function searchClawdHub(query: string): Promise<RegistrySearchResult> {
     try {
       const res = await fetchWithTimeout(url)
       if (!res.ok) {
-        logger.warn({ status: res.status, url }, 'ClawdHub search request failed')
+        logger.warn({ status: res.status, url }, 'HermesHub search request failed')
         continue
       }
 
@@ -308,7 +308,7 @@ async function searchClawdHub(query: string): Promise<RegistrySearchResult> {
         return { skills, total: data?.total || skills.length, source: 'clawhub' }
       }
     } catch (err: any) {
-      logger.warn({ err: err.message, url }, 'ClawdHub search error')
+      logger.warn({ err: err.message, url }, 'HermesHub search error')
     }
   }
 
@@ -361,9 +361,9 @@ async function searchSkillsSh(query: string): Promise<RegistrySearchResult> {
 }
 
 export async function searchRegistry(source: RegistrySource, query: string): Promise<RegistrySearchResult> {
-  if (source === 'clawhub') return searchClawdHub(query)
+  if (source === 'clawhub') return searchHermesHub(query)
   if (source === 'skills-sh') return searchSkillsSh(query)
-  if (source === 'awesome-openclaw') return searchAwesomeOpenclaw(query)
+  if (source === 'awesome-hermes') return searchAwesomeOpenclaw(query)
   return { skills: [], total: 0, source }
 }
 
@@ -381,23 +381,23 @@ function skillNameFromSlug(slug: string): string {
 function getTargetDir(targetRoot: string): string {
   const home = homedir()
   const cwd = process.cwd()
-  const openclawState = process.env.OPENCLAW_STATE_DIR || process.env.OPENCLAW_HOME || join(home, '.openclaw')
+  const hermesState = process.env.HERMES_STATE_DIR || process.env.HERMES_HOME || join(home, '.hermes')
   const rootMap: Record<string, string> = {
     'user-agents': process.env.MC_SKILLS_USER_AGENTS_DIR || join(home, '.agents', 'skills'),
     'user-codex': process.env.MC_SKILLS_USER_CODEX_DIR || join(home, '.codex', 'skills'),
     'project-agents': process.env.MC_SKILLS_PROJECT_AGENTS_DIR || join(cwd, '.agents', 'skills'),
     'project-codex': process.env.MC_SKILLS_PROJECT_CODEX_DIR || join(cwd, '.codex', 'skills'),
-    'openclaw': process.env.MC_SKILLS_OPENCLAW_DIR || join(openclawState, 'skills'),
+    'hermes': process.env.MC_SKILLS_OPENCLAW_DIR || join(hermesState, 'skills'),
   }
   const dir = rootMap[targetRoot]
   if (!dir) throw new Error(`Invalid target root: ${targetRoot}`)
   return dir
 }
 
-async function fetchClawdHubSkill(slug: string): Promise<{ content: string; hash?: string }> {
+async function fetchHermesHubSkill(slug: string): Promise<{ content: string; hash?: string }> {
   const url = `${CLAWHUB_API}/skills/${encodeURIComponent(slug)}/content`
   const res = await fetchWithTimeout(url)
-  if (!res.ok) throw new Error(`ClawdHub fetch failed (${res.status})`)
+  if (!res.ok) throw new Error(`HermesHub fetch failed (${res.status})`)
   const data = await res.json() as any
   return { content: data.content || data.skill_md || '', hash: data.hash || data.sha256 }
 }
@@ -425,10 +425,10 @@ export async function installFromRegistry(req: InstallRequest): Promise<InstallR
 
   try {
     if (req.source === 'clawhub') {
-      const result = await fetchClawdHubSkill(req.slug)
+      const result = await fetchHermesHubSkill(req.slug)
       content = result.content
       registryHash = result.hash
-    } else if (req.source === 'awesome-openclaw') {
+    } else if (req.source === 'awesome-hermes') {
       const result = await fetchAwesomeOpenclawSkill(req.slug)
       content = result.content
     } else {
@@ -443,7 +443,7 @@ export async function installFromRegistry(req: InstallRequest): Promise<InstallR
     return { ok: false, name, path: skillDir, message: 'Registry returned empty content' }
   }
 
-  // SHA-256 verification for ClawdHub
+  // SHA-256 verification for HermesHub
   if (registryHash) {
     const computed = createHash('sha256').update(content, 'utf8').digest('hex')
     if (computed !== registryHash) {

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '100', 10), 1), 500)
   const since = parseInt(searchParams.get('since') || '0', 10) || 0
 
-  const stateDir = config.openclawStateDir
+  const stateDir = config.hermesStateDir
   if (!stateDir) {
     return NextResponse.json({ events: [], sessionCount: 0 })
   }

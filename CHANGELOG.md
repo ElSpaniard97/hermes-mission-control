@@ -10,7 +10,7 @@ All notable changes to Mission Control are documented in this file.
 
 ## [2.0.1] - 2026-03-18
 
-Mission Control 2.0.1 is the first patch release after the v2 launch. It rolls up the full set of fixes and follow-on features that landed after `v2.0.0`, including HTTP/Tailscale login hardening, zero-config onboarding, internationalization, gateway/runtime stability fixes, deeper task-routing automation, and the latest OpenClaw compatibility updates.
+Mission Control 2.0.1 is the first patch release after the v2 launch. It rolls up the full set of fixes and follow-on features that landed after `v2.0.0`, including HTTP/Tailscale login hardening, zero-config onboarding, internationalization, gateway/runtime stability fixes, deeper task-routing automation, and the latest Hermes compatibility updates.
 
 ### Added
 - First-time setup wizard and zero-config startup flow for fresh installs
@@ -36,7 +36,7 @@ Mission Control 2.0.1 is the first patch release after the v2 launch. It rolls u
 - Fresh HTTP Docker installs failing login because secure-cookie behavior did not follow the actual request protocol
 - Gateway auth and credential detection for mixed token/password setups
 - Task dispatch using display names instead of gateway agent IDs
-- Docker and gateway-optional regressions across Compose startup, health probes, public assets, `OPENCLAW_HOME`, and read-only config handling
+- Docker and gateway-optional regressions across Compose startup, health probes, public assets, `HERMES_HOME`, and read-only config handling
 - SQLite `SQLITE_BUSY` contention by adding `busy_timeout` and guarding build-phase eager initialization
 - Doctor banner dismissal persistence, cron panel crash handling, and null-safe model config editing
 - Gateway connectivity and onboarding probe issues, including POST-based wizard health checks and explicit public websocket URL preference
@@ -44,7 +44,7 @@ Mission Control 2.0.1 is the first patch release after the v2 launch. It rolls u
 - Memory diagnostics scoping, gateway notification delivery, session labels, and multiple i18n namespace gaps
 - Password generation now uses a CSPRNG in the Windows installer
 - Reagraph CSP rendering regression caused by nonce handling in `style-src`
-- `/api/spawn` now supports OpenClaw agents that rely on configured default models instead of requiring a runtime `model`
+- `/api/spawn` now supports Hermes agents that rely on configured default models instead of requiring a runtime `model`
 - Gateway dashboard registration now has explicit regression coverage preserving device-auth posture
 
 ### Security
@@ -64,7 +64,7 @@ Mission Control 2.0.1 is the first patch release after the v2 launch. It rolls u
 - @clintbaxley
 - @dk-blackfuel
 - @firefloc-nox
-- @HonzysClawdbot
+- @HonzysHermesbot
 - @hectorse.88
 - @jonathan-squaredlemons
 - @jonboirama
@@ -78,7 +78,7 @@ Mission Control 2.0.1 is the first patch release after the v2 launch. It rolls u
 - HTTP and Tailscale login broken by unconditional HTTPS redirect — replaced with opt-in `NEXT_PUBLIC_FORCE_HTTPS=1` (#309)
 - CSP nonce mismatch blocking inline scripts after login — nonce now propagated into SSR request headers (#308, #311)
 - Layout inline theme script missing `nonce` attribute, causing CSP violations on chunk loading (#308, #311)
-- Task dispatch sending agent display name instead of gateway ID — now resolves `openclawId` from config (#310)
+- Task dispatch sending agent display name instead of gateway ID — now resolves `hermesId` from config (#310)
 - Session cookie `Secure` flag forced in production even over HTTP — now derived from actual request protocol (#304)
 - Node version check changed from allowlist (22, 24) to floor (>=22) for future compatibility
 
@@ -93,24 +93,24 @@ Mission Control 2.0.1 is the first patch release after the v2 launch. It rolls u
 ## [2.0.0] - 2026-03-11
 
 ### Added
-- Dual-mode operations for both OpenClaw gateway deployments and local workstation installs
+- Dual-mode operations for both Hermes gateway deployments and local workstation installs
 - Hermes observability, including session, task, cron, memory, and transcript visibility
 - Obsidian-style memory knowledge system with graph visualization, health signals, and filesystem browser
-- Rebuilt onboarding flow with session-scoped walkthroughs, security scan, and OpenClaw gateway setup guidance
-- OpenClaw doctor status and in-app doctor fix workflow for runtime drift detection and remediation
-- Expanded OpenClaw dashboard coverage for channels, chat, sessions, cron, usage, devices, approvals, logs, and schema-backed config
+- Rebuilt onboarding flow with session-scoped walkthroughs, security scan, and Hermes gateway setup guidance
+- Hermes doctor status and in-app doctor fix workflow for runtime drift detection and remediation
+- Expanded Hermes dashboard coverage for channels, chat, sessions, cron, usage, devices, approvals, logs, and schema-backed config
 - Global exec approval overlay, unified cost tracker, and richer agent communication/session routing views
 - Embedded chat workspace, Claude Code task bridge, framework adapters, self-update flow, and stronger local agent/skill discovery
 - Automated task dispatch, automated Aegis review, natural-language recurring tasks, and richer gateway backup/update actions
 
 ### Fixed
-- Agent and workspace deletion now removes OpenClaw config state correctly and refreshes the UI consistently
+- Agent and workspace deletion now removes Hermes config state correctly and refreshes the UI consistently
 - Security scan autofix no longer breaks host access or E2E runtime env state after applying fixes
 - Mission Control builds now isolate build-time SQLite state from runtime SQLite state, eliminating `SQLITE_BUSY` build contention
 - Standalone deploy/runtime handling now preserves data directories, static assets, and restart detection more reliably
-- OpenClaw config compatibility issues around malformed `model.primary` payloads, stale keys, and doctor warning classification
+- Hermes config compatibility issues around malformed `model.primary` payloads, stale keys, and doctor warning classification
 - Local Hermes transcript loading, gateway chat/channel RPC fallbacks, and memory panel regressions from the refactor cycle
-- E2E harness isolation so tests use fresh temp OpenClaw state, temp skill roots, and deterministic scheduler behavior
+- E2E harness isolation so tests use fresh temp Hermes state, temp skill roots, and deterministic scheduler behavior
 - Login/autofill/CSP regressions, websocket/device-identity edge cases, memory graph fit/overflow issues, and several panel parity gaps found during the refactor
 
 ### Changed

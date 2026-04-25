@@ -3,7 +3,7 @@ import { requireRole } from '@/lib/auth'
 import { config } from '@/lib/config'
 import { logger } from '@/lib/logger'
 import { getDetectedGatewayToken } from '@/lib/gateway-runtime'
-import { callOpenClawGateway } from '@/lib/openclaw-gateway'
+import { callHermesGateway } from '@/lib/hermes-gateway'
 
 const gatewayInternalUrl = `http://${config.gatewayHost}:${config.gatewayPort}`
 
@@ -147,7 +147,7 @@ function transformGatewayChannels(data: GatewayData): ChannelsSnapshot {
 }
 
 async function loadChannelsViaRpc(probe = false): Promise<ChannelsSnapshot> {
-  const payload = await callOpenClawGateway<GatewayData>(
+  const payload = await callHermesGateway<GatewayData>(
     'channels.status',
     { probe, timeoutMs: 8000 },
     probe ? 20000 : 15000,
@@ -159,7 +159,7 @@ async function loadChannelsViaRpc(probe = false): Promise<ChannelsSnapshot> {
 }
 
 async function loadChannelsViaCli(probe = false): Promise<ChannelsSnapshot> {
-  const payload = await callOpenClawGateway<GatewayData>(
+  const payload = await callHermesGateway<GatewayData>(
     'channels.status',
     { probe, timeoutMs: 8000 },
     probe ? 20000 : 15000,
@@ -172,10 +172,10 @@ async function loadChannelsViaCli(probe = false): Promise<ChannelsSnapshot> {
     }
   }
 
-  const { runOpenClaw } = await import('@/lib/command')
+  const { runHermes } = await import('@/lib/command')
   const args = ['channels', 'status', '--json', '--timeout', '5000']
   if (probe) args.push('--probe')
-  const { stdout } = await runOpenClaw(args, { timeoutMs: probe ? 20000 : 15000 })
+  const { stdout } = await runHermes(args, { timeoutMs: probe ? 20000 : 15000 })
   return {
     ...transformGatewayChannels(JSON.parse(stdout)),
     connected: true,
@@ -327,7 +327,7 @@ export async function POST(request: NextRequest) {
           // Fallback to RPC below.
         }
         return NextResponse.json(
-          await callOpenClawGateway('web.login.start', { force, timeoutMs: 30000 }, 32000)
+          await callHermesGateway('web.login.start', { force, timeoutMs: 30000 }, 32000)
         )
       }
 
@@ -353,7 +353,7 @@ export async function POST(request: NextRequest) {
           // Fallback to RPC below.
         }
         return NextResponse.json(
-          await callOpenClawGateway('web.login.wait', { timeoutMs: 120000 }, 122000)
+          await callHermesGateway('web.login.wait', { timeoutMs: 120000 }, 122000)
         )
       }
 
@@ -379,7 +379,7 @@ export async function POST(request: NextRequest) {
           // Fallback to RPC below.
         }
         return NextResponse.json(
-          await callOpenClawGateway('channels.logout', { channel: 'whatsapp' }, 12000)
+          await callHermesGateway('channels.logout', { channel: 'whatsapp' }, 12000)
         )
       }
 

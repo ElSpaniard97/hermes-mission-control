@@ -169,18 +169,18 @@ setup_env() {
   fi
 
   # Auto-detect and write OpenClaw home directory into .env
-  local oc_home="${OPENCLAW_HOME:-$HOME/.openclaw}"
+  local oc_home="${HERMES_HOME:-$HOME/.openclaw}"
   if [[ -d "$oc_home" ]]; then
-    portable_sed "s|^OPENCLAW_HOME=.*|OPENCLAW_HOME=$(sed_escape "$oc_home")|" "$INSTALL_DIR/.env"
-    info "Set OPENCLAW_HOME=$oc_home in .env"
+    portable_sed "s|^HERMES_HOME=.*|HERMES_HOME=$(sed_escape "$oc_home")|" "$INSTALL_DIR/.env"
+    info "Set HERMES_HOME=$oc_home in .env"
   fi
 
   # In Docker mode, the gateway runs on the host, not inside the container.
-  # Set OPENCLAW_GATEWAY_HOST to the Docker host gateway IP so the container
+  # Set HERMES_GATEWAY_HOST to the Docker host gateway IP so the container
   # can reach the gateway. Users may override this with the gateway container
   # name if running OpenClaw in a container on the same network.
   if [[ "$DEPLOY_MODE" == "docker" ]]; then
-    local gw_host="${OPENCLAW_GATEWAY_HOST:-}"
+    local gw_host="${HERMES_GATEWAY_HOST:-}"
     if [[ -z "$gw_host" ]]; then
       # Detect Docker host IP (host-gateway alias or default bridge)
       if getent hosts host-gateway &>/dev/null 2>&1; then
@@ -191,9 +191,9 @@ setup_env() {
       fi
     fi
     if [[ -n "$gw_host" && "$gw_host" != "127.0.0.1" ]]; then
-      portable_sed "s|^OPENCLAW_GATEWAY_HOST=.*|OPENCLAW_GATEWAY_HOST=$(sed_escape "$gw_host")|" "$INSTALL_DIR/.env"
-      info "Set OPENCLAW_GATEWAY_HOST=$gw_host in .env (Docker host IP)"
-      info "  If your gateway runs in a Docker container, update OPENCLAW_GATEWAY_HOST"
+      portable_sed "s|^HERMES_GATEWAY_HOST=.*|HERMES_GATEWAY_HOST=$(sed_escape "$gw_host")|" "$INSTALL_DIR/.env"
+      info "Set HERMES_GATEWAY_HOST=$gw_host in .env (Docker host IP)"
+      info "  If your gateway runs in a Docker container, update HERMES_GATEWAY_HOST"
       info "  to the container name and add it to the mc-net network."
     fi
   fi
@@ -336,16 +336,16 @@ check_openclaw() {
   fi
 
   # Check OpenClaw home directory
-  local oc_home="${OPENCLAW_HOME:-$HOME/.openclaw}"
+  local oc_home="${HERMES_HOME:-$HOME/.openclaw}"
   if [[ -d "$oc_home" ]]; then
     ok "OpenClaw home: $oc_home"
 
     # Check config
-    local oc_config="$oc_home/openclaw.json"
+    local oc_config="$oc_home/config.yaml"
     if [[ -f "$oc_config" ]]; then
       ok "Config found: $oc_config"
     else
-      warn "No openclaw.json found at $oc_config"
+      warn "No config.yaml found at $oc_config"
       info "Mission Control will create a default config on first gateway connection"
     fi
 
@@ -394,12 +394,12 @@ check_openclaw() {
     fi
   else
     info "OpenClaw home not found at $oc_home"
-    info "Set OPENCLAW_HOME in .env to point to your OpenClaw state directory"
+    info "Set HERMES_HOME in .env to point to your OpenClaw state directory"
   fi
 
   # Check gateway port
-  local gw_host="${OPENCLAW_GATEWAY_HOST:-127.0.0.1}"
-  local gw_port="${OPENCLAW_GATEWAY_PORT:-18789}"
+  local gw_host="${HERMES_GATEWAY_HOST:-127.0.0.1}"
+  local gw_port="${HERMES_GATEWAY_PORT:-18789}"
   if nc -z "$gw_host" "$gw_port" 2>/dev/null || (echo > "/dev/tcp/$gw_host/$gw_port") 2>/dev/null; then
     ok "Gateway reachable at $gw_host:$gw_port"
   else

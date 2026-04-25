@@ -11,7 +11,7 @@ export function parseJsonRelaxed<T>(raw: string): T {
     try {
       return JSON.parse(normalized) as T
     } catch {
-      // Last resort: quote unquoted keys (JSON5-style configs like OpenClaw)
+      // Last resort: quote unquoted keys (JSON5-style configs like Hermes)
       const quoted = quoteUnquotedKeys(normalized)
       return JSON.parse(quoted) as T
     }

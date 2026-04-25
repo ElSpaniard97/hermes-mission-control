@@ -846,7 +846,7 @@ export function CreateAgentModal({
     dockerNetwork: 'none' as 'none' | 'bridge',
     session_key: '',
     write_to_gateway: true,
-    provision_openclaw_workspace: true,
+    provision_hermes_workspace: true,
   })
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -915,7 +915,7 @@ export function CreateAgentModal({
     if (formData.write_to_gateway) {
       steps.push({ label: t('stepWritingGateway'), status: 'pending' })
     }
-    if (formData.provision_openclaw_workspace) {
+    if (formData.provision_hermes_workspace) {
       steps.push({ label: t('stepProvisioningWorkspace'), status: 'pending' })
     }
     setProgressSteps([...steps])
@@ -939,12 +939,12 @@ export function CreateAgentModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: formData.name,
-            openclaw_id: formData.id || undefined,
+            hermes_id: formData.id || undefined,
             role: formData.role,
             session_key: formData.session_key || undefined,
             template: selectedTemplate || undefined,
             write_to_gateway: formData.write_to_gateway,
-            provision_openclaw_workspace: formData.provision_openclaw_workspace,
+            provision_hermes_workspace: formData.provision_hermes_workspace,
             gateway_config: {
               model: { primary: primaryModel },
               identity: { name: formData.name, theme: formData.role, emoji: formData.emoji },
@@ -965,7 +965,7 @@ export function CreateAgentModal({
         const errMsg = data.error || 'Failed to create agent'
         // Determine which step failed based on error message
         const failIdx =
-          /provision|openclaw/i.test(errMsg) ? steps.findIndex(s => s.label.includes('Provisioning')) :
+          /provision|hermes/i.test(errMsg) ? steps.findIndex(s => s.label.includes('Provisioning')) :
           /gateway/i.test(errMsg) ? steps.findIndex(s => s.label.includes('gateway')) :
           0
         const idx = failIdx >= 0 ? failIdx : 0
@@ -1292,8 +1292,8 @@ export function CreateAgentModal({
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.provision_openclaw_workspace}
-                      onChange={(e) => setFormData(prev => ({ ...prev, provision_openclaw_workspace: e.target.checked }))}
+                      checked={formData.provision_hermes_workspace}
+                      onChange={(e) => setFormData(prev => ({ ...prev, provision_hermes_workspace: e.target.checked }))}
                       className="w-4 h-4 rounded border-border"
                     />
                     <span className="text-sm text-foreground">{t('provisionWorkspace')}</span>
@@ -1578,7 +1578,7 @@ export function ConfigTab({
   return (
     <div className="p-6 space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="text-lg font-medium text-foreground">{t('openclawConfig')}</h4>
+        <h4 className="text-lg font-medium text-foreground">{t('hermesConfig')}</h4>
         <div className="flex gap-2">
           <Button
             onClick={() => setShowJson(!showJson)}
@@ -1604,9 +1604,9 @@ export function ConfigTab({
         </div>
       )}
 
-      {config.openclawId && (
+      {config.hermesId && (
         <div className="text-xs text-muted-foreground">
-          OpenClaw ID: <span className="font-mono text-foreground">{config.openclawId}</span>
+          Hermes ID: <span className="font-mono text-foreground">{config.hermesId}</span>
           {config.isDefault && <span className="ml-2 px-1.5 py-0.5 bg-primary/20 text-primary rounded text-xs">{t('default')}</span>}
         </div>
       )}

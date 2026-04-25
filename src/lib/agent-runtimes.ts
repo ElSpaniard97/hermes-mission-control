@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { config } from './config'
-import { runCommand, runOpenClaw } from './command'
+import { runCommand, runHermes } from './command'
 import { scanForInjection } from './injection-guard'
 import { isHermesInstalled, isHermesGatewayRunning, clearHermesDetectionCache } from './hermes-sessions'
 import { isOpenCodeInstalled, getOpenCodeVersion, scanOpenCodeSessions } from './opencode-sessions'
@@ -159,7 +159,7 @@ ${truncated}
   }
 }
 
-export type RuntimeId = 'openclaw' | 'hermes' | 'claude' | 'codex' | 'opencode'
+export type RuntimeId = 'hermes' | 'hermes' | 'claude' | 'codex' | 'opencode'
 export type DeploymentMode = 'local' | 'docker'
 
 export interface RuntimeStatus {
@@ -193,8 +193,8 @@ export interface RuntimeMeta {
 }
 
 const RUNTIME_META: Record<RuntimeId, RuntimeMeta> = {
-  openclaw: {
-    name: 'OpenClaw',
+  hermes: {
+    name: 'Hermes',
     description: 'Multi-agent orchestration with gateway, sessions, and memory.',
     authRequired: false,
     authHint: '',
@@ -247,21 +247,21 @@ function pruneJobs() {
 // Detection
 // ---------------------------------------------------------------------------
 
-function detectOpenClaw(): RuntimeStatus {
-  const meta = RUNTIME_META.openclaw
+function detectHermes(): RuntimeStatus {
+  const meta = RUNTIME_META.hermes
   let installed = false
   let version: string | null = null
   let running = false
 
   // Check config file existence
-  if (config.openclawConfigPath && existsSync(config.openclawConfigPath)) {
+  if (config.hermesConfigPath && existsSync(config.hermesConfigPath)) {
     installed = true
   }
 
   // Try to get version
   try {
     const result = require('node:child_process').spawnSync(
-      config.openclawBin || 'openclaw',
+      config.hermesBin || 'hermes',
       ['--version'],
       { stdio: 'pipe', timeout: 3000 }
     )
@@ -290,7 +290,7 @@ function detectOpenClaw(): RuntimeStatus {
     // ignore
   }
 
-  return { id: 'openclaw', ...meta, installed, version, running, authenticated: true }
+  return { id: 'hermes', ...meta, installed, version, running, authenticated: true }
 }
 
 function detectHermes(): RuntimeStatus {
@@ -481,7 +481,7 @@ function detectOpenCode(): RuntimeStatus {
 }
 
 const DETECTORS: Record<RuntimeId, () => RuntimeStatus> = {
-  openclaw: detectOpenClaw,
+  hermes: detectHermes,
   hermes: detectHermes,
   claude: detectClaude,
   codex: detectCodex,
@@ -527,13 +527,13 @@ export function startInstall(runtime: RuntimeId, mode: DeploymentMode): InstallJ
 
   // Local install — run in background
   const INSTALL_FNS: Record<RuntimeId, (job: InstallJob) => Promise<void>> = {
-    openclaw: installOpenClawLocal,
+    hermes: installHermesLocal,
     hermes: installHermesLocal,
     claude: installClaudeLocal,
     codex: installCodexLocal,
     opencode: installOpenCodeLocal,
   }
-  const installFn = INSTALL_FNS[runtime] || installOpenClawLocal
+  const installFn = INSTALL_FNS[runtime] || installHermesLocal
   installFn(job).catch((err) => {
     job.status = 'failed'
     job.error = String(err?.message || err)
@@ -588,8 +588,8 @@ async function runInstallCmd(cmd: string, args: string[], job: InstallJob): Prom
   }
 }
 
-async function installOpenClawLocal(job: InstallJob): Promise<void> {
-  job.output += '> Installing OpenClaw...\n'
+async function installHermesLocal(job: InstallJob): Promise<void> {
+  job.output += '> Installing Hermes...\n'
   const env = {
     ...getInstallEnv(),
     NONINTERACTIVE: '1',
@@ -597,7 +597,7 @@ async function installOpenClawLocal(job: InstallJob): Promise<void> {
   }
   try {
     // Download, review, then execute from secure temp dir
-    const reviewed = await downloadAndReviewScript('https://get.openclaw.dev', job, env)
+    const reviewed = await downloadAndReviewScript('https://get.hermes.dev', job, env)
     if (!reviewed) {
       job.status = 'failed'
       job.error = 'Installer download or security review failed'
@@ -613,23 +613,23 @@ async function installOpenClawLocal(job: InstallJob): Promise<void> {
     rmSync(reviewed.tempDir, { recursive: true, force: true })
 
     // Verify the binary actually exists after install
-    const { installed: verified } = detectBinary([config.openclawBin || 'openclaw'])
+    const { installed: verified } = detectBinary([config.hermesBin || 'hermes'])
 
     if (result.code === 0 && verified) {
-      job.output += '\n> OpenClaw installed. Running initial setup...\n'
+      job.output += '\n> Hermes installed. Running initial setup...\n'
       try {
-        const onboard = await runCommand('openclaw', ['onboard', '--non-interactive'], { timeoutMs: 60_000, env })
+        const onboard = await runCommand('hermes', ['onboard', '--non-interactive'], { timeoutMs: 60_000, env })
         if (onboard.stdout) job.output += onboard.stdout + '\n'
         if (onboard.stderr) job.output += onboard.stderr + '\n'
       } catch {
-        job.output += '> Note: "openclaw onboard" skipped (run manually if needed).\n'
+        job.output += '> Note: "hermes onboard" skipped (run manually if needed).\n'
       }
       job.status = 'success'
-      job.output += '\n> OpenClaw installed successfully.\n'
+      job.output += '\n> Hermes installed successfully.\n'
     } else if (result.code === 0 && !verified) {
       job.status = 'failed'
-      job.error = 'Install command succeeded but openclaw binary was not found. curl may not be installed.'
-      job.output += '\n> Install command ran but openclaw was not detected. Is curl installed?\n'
+      job.error = 'Install command succeeded but hermes binary was not found. curl may not be installed.'
+      job.output += '\n> Install command ran but hermes was not detected. Is curl installed?\n'
     } else {
       job.status = 'failed'
       job.error = `Install exited with code ${result.code}`
@@ -754,21 +754,21 @@ export function getActiveJobs(): InstallJob[] {
 // ---------------------------------------------------------------------------
 
 export function generateDockerSidecar(runtime: RuntimeId): string {
-  if (runtime === 'openclaw') {
-    return `  # OpenClaw Gateway sidecar
-  openclaw-gateway:
-    image: ghcr.io/openclaw/openclaw:latest
-    container_name: openclaw-gateway
+  if (runtime === 'hermes') {
+    return `  # Hermes Gateway sidecar
+  hermes-gateway:
+    image: ghcr.io/hermes/hermes:latest
+    container_name: hermes-gateway
     ports:
-      - "\${OPENCLAW_GATEWAY_PORT:-18789}:18789"
+      - "\${HERMES_GATEWAY_PORT:-18789}:18789"
     volumes:
-      - openclaw-data:/root/.openclaw
+      - hermes-data:/root/.hermes
     networks:
       - mc-net
     restart: unless-stopped
 
 # Add to volumes section:
-#   openclaw-data:`
+#   hermes-data:`
   }
 
   if (runtime === 'opencode') {

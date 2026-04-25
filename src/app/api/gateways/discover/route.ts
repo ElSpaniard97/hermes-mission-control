@@ -12,7 +12,7 @@ interface DiscoveredGateway {
 
 /**
  * GET /api/gateways/discover
- * Discovers OpenClaw gateways via systemd services and port scanning.
+ * Discovers Hermes gateways via systemd services and port scanning.
  * Does not require filesystem access to other users' configs.
  */
 export async function GET(request: NextRequest) {
@@ -21,37 +21,37 @@ export async function GET(request: NextRequest) {
 
   const discovered: DiscoveredGateway[] = []
 
-  // Parse systemd services for openclaw-gateway instances
+  // Parse systemd services for hermes-gateway instances
   try {
     const output = execFileSync('systemctl', [
       'list-units', '--type=service', '--plain', '--no-legend', '--no-pager',
     ], { encoding: 'utf-8', timeout: 3000 })
 
-    const gwLines = output.split('\n').filter(l => l.includes('openclaw') && l.includes('gateway'))
+    const gwLines = output.split('\n').filter(l => l.includes('hermes') && l.includes('gateway'))
 
     for (const line of gwLines) {
-      // e.g. "openclaw-gateway@quant.service loaded active running OpenClaw Gateway (quant)"
+      // e.g. "hermes-gateway@quant.service loaded active running Hermes Gateway (quant)"
       const parts = line.trim().split(/\s+/)
       const serviceName = parts[0] || ''
       const state = parts[2] || '' // active/inactive
-      const description = parts.slice(4).join(' ') // "OpenClaw Gateway (quant)"
+      const description = parts.slice(4).join(' ') // "Hermes Gateway (quant)"
 
       // Extract user from service name
       let user = ''
-      const templateMatch = serviceName.match(/openclaw-gateway@(\w+)\.service/)
+      const templateMatch = serviceName.match(/hermes-gateway@(\w+)\.service/)
       if (templateMatch) {
         user = templateMatch[1]
       } else {
-        // Custom service name like "openclaw-leads-gateway.service"
-        const customMatch = serviceName.match(/openclaw-(\w+)-gateway\.service/)
+        // Custom service name like "hermes-leads-gateway.service"
+        const customMatch = serviceName.match(/hermes-(\w+)-gateway\.service/)
         if (customMatch) user = customMatch[1]
       }
       if (!user) continue
 
-      // Find the port by checking what openclaw-gateway processes are listening on
+      // Find the port by checking what hermes-gateway processes are listening on
       let port = 0
       try {
-        const configPath = `/home/${user}/.openclaw/openclaw.json`
+        const configPath = `/home/${user}/.hermes/config.yaml`
         const raw = readFileSync(configPath, 'utf-8')
         const config = JSON.parse(raw)
         if (typeof config?.gateway?.port === 'number') port = config.gateway.port

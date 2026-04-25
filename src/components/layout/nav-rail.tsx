@@ -827,7 +827,7 @@ function ContextSwitcher({ currentUser, isAdmin, isLocal, isConnected, tenants, 
   const unlinkedOsUsers = osUsers.filter(u => !linkedUsernames.has(u.username) && !u.is_process_owner)
   const [open, setOpen] = useState(false)
   const [createMode, setCreateMode] = useState(false)
-  const [createForm, setCreateForm] = useState({ username: '', display_name: '', gateway_port: '', install_openclaw: true, install_claude: false, install_codex: false })
+  const [createForm, setCreateForm] = useState({ username: '', display_name: '', gateway_port: '', install_hermes: true, install_claude: false, install_codex: false })
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
@@ -1043,7 +1043,7 @@ function ContextSwitcher({ currentUser, isAdmin, isLocal, isConnected, tenants, 
                     const tools = [
                       osUser.has_claude && 'claude',
                       osUser.has_codex && 'codex',
-                      osUser.has_openclaw && 'openclaw',
+                      osUser.has_hermes && 'hermes',
                     ].filter(Boolean)
                     const statusLabel = isLocal
                       ? (tools.length > 0 ? tools.join('+') : tcs('noTools'))
@@ -1121,33 +1121,33 @@ function ContextSwitcher({ currentUser, isAdmin, isLocal, isConnected, tenants, 
                             <label className="flex items-center gap-1 cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={createForm.install_openclaw}
-                                onChange={(e) => setCreateForm(f => ({ ...f, install_openclaw: e.target.checked }))}
+                                checked={createForm.install_hermes}
+                                onChange={(e) => setCreateForm(f => ({ ...f, install_hermes: e.target.checked }))}
                                 className="w-3 h-3 rounded accent-primary"
                               />
-                              <span className="text-[10px] text-foreground">openclaw</span>
+                              <span className="text-[10px] text-foreground">hermes</span>
                             </label>
-                            <label className={`flex items-center gap-1 ${createForm.install_openclaw ? 'opacity-50' : ''} cursor-pointer`}>
+                            <label className={`flex items-center gap-1 ${createForm.install_hermes ? 'opacity-50' : ''} cursor-pointer`}>
                               <input
                                 type="checkbox"
-                                checked={createForm.install_claude || createForm.install_openclaw}
+                                checked={createForm.install_claude || createForm.install_hermes}
                                 onChange={(e) => setCreateForm(f => ({ ...f, install_claude: e.target.checked }))}
-                                disabled={createForm.install_openclaw}
+                                disabled={createForm.install_hermes}
                                 className="w-3 h-3 rounded accent-primary"
                               />
                               <span className="text-[10px] text-foreground">claude</span>
-                              {createForm.install_openclaw && <span className="text-[9px] text-muted-foreground/50 italic">included</span>}
+                              {createForm.install_hermes && <span className="text-[9px] text-muted-foreground/50 italic">included</span>}
                             </label>
-                            <label className={`flex items-center gap-1 ${createForm.install_openclaw ? 'opacity-50' : ''} cursor-pointer`}>
+                            <label className={`flex items-center gap-1 ${createForm.install_hermes ? 'opacity-50' : ''} cursor-pointer`}>
                               <input
                                 type="checkbox"
-                                checked={createForm.install_codex || createForm.install_openclaw}
+                                checked={createForm.install_codex || createForm.install_hermes}
                                 onChange={(e) => setCreateForm(f => ({ ...f, install_codex: e.target.checked }))}
-                                disabled={createForm.install_openclaw}
+                                disabled={createForm.install_hermes}
                                 className="w-3 h-3 rounded accent-primary"
                               />
                               <span className="text-[10px] text-foreground">codex</span>
-                              {createForm.install_openclaw && <span className="text-[9px] text-muted-foreground/50 italic">included</span>}
+                              {createForm.install_hermes && <span className="text-[9px] text-muted-foreground/50 italic">included</span>}
                             </label>
                           </div>
                         </div>
@@ -1176,14 +1176,14 @@ function ContextSwitcher({ currentUser, isAdmin, isLocal, isConnected, tenants, 
                                   display_name,
                                   gateway_mode: !isLocal,
                                   gateway_port: createForm.gateway_port ? Number(createForm.gateway_port) : undefined,
-                                  install_openclaw: createForm.install_openclaw,
+                                  install_hermes: createForm.install_hermes,
                                   install_claude: createForm.install_claude,
                                   install_codex: createForm.install_codex,
                                 }),
                               })
                               const json = await res.json().catch(() => ({}))
                               if (!res.ok) throw new Error(json?.error || 'Failed to create organization')
-                              setCreateForm({ username: '', display_name: '', gateway_port: '', install_openclaw: true, install_claude: false, install_codex: false })
+                              setCreateForm({ username: '', display_name: '', gateway_port: '', install_hermes: true, install_claude: false, install_codex: false })
                               setCreateMode(false)
                               await Promise.all([fetchTenants(), fetchOsUsers()])
                             } catch (e: any) {

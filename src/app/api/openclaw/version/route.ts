@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { runOpenClaw } from '@/lib/command'
+import { runHermes } from '@/lib/command'
 
 const GITHUB_RELEASES_URL =
-  'https://api.github.com/repos/openclaw/openclaw/releases/latest'
+  'https://api.github.com/repos/hermes/hermes/releases/latest'
 
 function compareSemver(a: string, b: string): number {
   const pa = a.replace(/^v/, '').split('.').map(Number)
@@ -22,11 +22,11 @@ export async function GET() {
   let installed: string | null = null
 
   try {
-    const result = await runOpenClaw(['--version'], { timeoutMs: 3000 })
+    const result = await runHermes(['--version'], { timeoutMs: 3000 })
     const match = result.stdout.match(/(\d+\.\d+\.\d+)/)
     if (match) installed = match[1]
   } catch {
-    // OpenClaw not installed or not reachable
+    // Hermes not installed or not reachable
     return NextResponse.json(
       { installed: null, latest: null, updateAvailable: false },
       { headers }
@@ -64,7 +64,7 @@ export async function GET() {
         updateAvailable,
         releaseUrl: release.html_url ?? '',
         releaseNotes: release.body ?? '',
-        updateCommand: 'openclaw update --channel stable',
+        updateCommand: 'hermes update --channel stable',
       },
       { headers }
     )

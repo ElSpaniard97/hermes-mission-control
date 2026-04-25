@@ -96,7 +96,7 @@ export function Sidebar() {
           </div>
           <div>
             <h2 className="font-bold text-foreground">Mission Control</h2>
-            <p className="text-xs text-muted-foreground">ClawdBot Orchestration</p>
+            <p className="text-xs text-muted-foreground">HermesBot Orchestration</p>
           </div>
         </div>
       </div>

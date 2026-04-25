@@ -46,8 +46,8 @@ import { useTranslations } from 'next-intl'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LocalModeBanner } from '@/components/layout/local-mode-banner'
 import { UpdateBanner } from '@/components/layout/update-banner'
-import { OpenClawUpdateBanner } from '@/components/layout/openclaw-update-banner'
-import { OpenClawDoctorBanner } from '@/components/layout/openclaw-doctor-banner'
+import { HermesUpdateBanner } from '@/components/layout/hermes-update-banner'
+import { HermesDoctorBanner } from '@/components/layout/hermes-doctor-banner'
 import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard'
 import { Loader } from '@/components/ui/loader'
 import { ProjectManagerModal } from '@/components/modals/project-manager-modal'
@@ -249,8 +249,8 @@ export default function Home() {
       })
       .catch(() => {})
 
-    // Check for OpenClaw updates
-    fetch('/api/openclaw/version')
+    // Check for Hermes updates
+    fetch('/api/hermes/version')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data?.updateAvailable) {
@@ -421,8 +421,8 @@ export default function Home() {
             <HeaderBar />
             <LocalModeBanner />
             <UpdateBanner />
-            <OpenClawUpdateBanner />
-            <OpenClawDoctorBanner />
+            <HermesUpdateBanner />
+            <HermesDoctorBanner />
           </>
         )}
         <main

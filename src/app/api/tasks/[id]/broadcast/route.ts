@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, db_helpers } from '@/lib/db'
-import { runOpenClaw } from '@/lib/command'
+import { runHermes } from '@/lib/command'
 import { requireRole } from '@/lib/auth'
 import { logger } from '@/lib/logger'
 
@@ -48,7 +48,7 @@ export async function POST(
     const results = await Promise.allSettled(
       agents.map(async (agent) => {
         if (!agent.session_key) return 'skipped'
-        await runOpenClaw(
+        await runHermes(
           [
             'gateway',
             'sessions_send',

@@ -88,7 +88,7 @@ function stopHermesGatewayDetached(homeDir: string): { stopped: boolean; error?:
   }
 }
 
-type GatewayType = 'hermes' | 'openclaw'
+type GatewayType = 'hermes' | 'hermes'
 type GatewayAction = 'status' | 'start' | 'stop' | 'restart' | 'diagnose'
 
 interface GatewayStatus {
@@ -125,8 +125,8 @@ function getHermesGatewayStatus(): GatewayStatus {
   return { type: 'hermes', name: 'Hermes Gateway', installed, running, pid }
 }
 
-function getOpenClawGatewayStatus(): GatewayStatus {
-  const installed = !!(config.openclawConfigPath && existsSync(config.openclawConfigPath))
+function getHermesGatewayStatus(): GatewayStatus {
+  const installed = !!(config.hermesConfigPath && existsSync(config.hermesConfigPath))
   let running = false
   let port: number | undefined
 
@@ -140,7 +140,7 @@ function getOpenClawGatewayStatus(): GatewayStatus {
     } catch { /* ignore */ }
   }
 
-  return { type: 'openclaw', name: 'OpenClaw Gateway', installed, running, port }
+  return { type: 'hermes', name: 'Hermes Gateway', installed, running, port }
 }
 
 /**
@@ -152,14 +152,14 @@ export async function GET(request: NextRequest) {
 
   const gateways: GatewayStatus[] = []
   gateways.push(getHermesGatewayStatus())
-  gateways.push(getOpenClawGatewayStatus())
+  gateways.push(getHermesGatewayStatus())
 
   return NextResponse.json({ gateways })
 }
 
 /**
  * POST /api/gateways/control — Start, stop, restart, or diagnose a gateway
- * Body: { gateway: 'hermes' | 'openclaw', action: 'start' | 'stop' | 'restart' | 'diagnose' }
+ * Body: { gateway: 'hermes' | 'hermes', action: 'start' | 'stop' | 'restart' | 'diagnose' }
  */
 export async function POST(request: NextRequest) {
   const auth = requireRole(request, 'admin')
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'gateway and action are required' }, { status: 400 })
     }
 
-    if (!['hermes', 'openclaw'].includes(gateway)) {
+    if (!['hermes', 'hermes'].includes(gateway)) {
       return NextResponse.json({ error: 'Invalid gateway type' }, { status: 400 })
     }
 
@@ -264,19 +264,19 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    if (gateway === 'openclaw') {
-      const openclawBin = config.openclawBin || 'openclaw'
+    if (gateway === 'hermes') {
+      const hermesBin = config.hermesBin || 'hermes'
 
       if (action === 'diagnose') {
-        const result = await runCommand(openclawBin, ['doctor'], { timeoutMs: 30_000 })
+        const result = await runCommand(hermesBin, ['doctor'], { timeoutMs: 30_000 })
         return NextResponse.json({
           success: result.code === 0,
           output: ((result.stdout || '') + '\n' + (result.stderr || '')).trim(),
         })
       }
 
-      // OpenClaw gateway uses `openclaw gateway start/stop/restart`
-      const result = await runCommand(openclawBin, ['gateway', action], {
+      // Hermes gateway uses `hermes gateway start/stop/restart`
+      const result = await runCommand(hermesBin, ['gateway', action], {
         timeoutMs: 15_000,
       })
 
@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: result.code === 0,
         output: ((result.stdout || '') + '\n' + (result.stderr || '')).trim(),
-        status: getOpenClawGatewayStatus(),
+        status: getHermesGatewayStatus(),
       })
     }
 

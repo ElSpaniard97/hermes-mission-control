@@ -29,7 +29,7 @@ Then open `http://localhost:3000` and sign in with the seeded `AUTH_USER`/`AUTH_
 
 - Agent: A worker connected to Mission Control that executes tasks and reports status/usage.
 - Task: A unit of work tracked across workflow columns (`inbox -> done`) with comments and ownership.
-- Gateway: Real-time connection layer (OpenClaw and compatible providers) for session/event streaming.
+- Gateway: Real-time connection layer (Hermes and compatible providers) for session/event streaming.
 - Workspace/Tenant: Isolated environment for multi-client operations, managed via `/api/super/*` endpoints.
 
 ## Recommended Wiki Structure

@@ -4,14 +4,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 
 interface RuntimeSetupModalProps {
-  runtime: 'openclaw' | 'hermes' | 'claude' | 'codex' | 'opencode'
+  runtime: 'hermes' | 'hermes' | 'claude' | 'codex' | 'opencode'
   onClose: () => void
   onComplete: () => void
 }
 
 export function RuntimeSetupModal({ runtime, onClose, onComplete }: RuntimeSetupModalProps) {
   const SetupComponent = {
-    openclaw: OpenClawSetup,
+    hermes: HermesSetup,
     hermes: HermesSetup,
     claude: ClaudeSetup,
     codex: CodexSetup,
@@ -50,9 +50,9 @@ function OpenCodeSetup({ onClose, onComplete }: { onClose: () => void; onComplet
   )
 }
 
-// ─── OpenClaw Setup ──────────────────────────────────────────────────────
+// ─── Hermes Setup ──────────────────────────────────────────────────────
 
-function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplete: () => void }) {
+function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete: () => void }) {
   const [step, setStep] = useState<'onboard' | 'verify' | 'done'>('onboard')
   const [running, setRunning] = useState(false)
   const [output, setOutput] = useState('')
@@ -67,11 +67,11 @@ function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplet
       await fetch('/api/agent-runtimes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'install', runtime: 'openclaw', mode: 'local' }),
+        body: JSON.stringify({ action: 'install', runtime: 'hermes', mode: 'local' }),
       })
       // The onboard command runs as part of post-install in agent-runtimes.ts
       // Let's use the doctor endpoint to check health instead
-      const doctorRes = await fetch('/api/openclaw/doctor')
+      const doctorRes = await fetch('/api/hermes/doctor')
       if (doctorRes.ok) {
         const data = await doctorRes.json()
         setHealthStatus(data)
@@ -95,7 +95,7 @@ function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplet
     setRunning(true)
     setError(null)
     try {
-      const res = await fetch('/api/openclaw/doctor', { method: 'POST' })
+      const res = await fetch('/api/hermes/doctor', { method: 'POST' })
       if (res.ok) {
         const data = await res.json()
         if (data.success) {
@@ -114,7 +114,7 @@ function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplet
 
   const checkHealth = useCallback(async () => {
     try {
-      const res = await fetch('/api/openclaw/doctor')
+      const res = await fetch('/api/hermes/doctor')
       if (res.ok) {
         const data = await res.json()
         setHealthStatus(data)
@@ -131,7 +131,7 @@ function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplet
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold">Set Up OpenClaw</h3>
+          <h3 className="text-lg font-semibold">Set Up Hermes</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Configure the gateway and verify connectivity</p>
         </div>
         <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
@@ -164,7 +164,7 @@ function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplet
               <span className="text-lg">1</span>
               <div>
                 <p className="text-sm font-medium">Health Check</p>
-                <p className="text-xs text-muted-foreground">Run OpenClaw doctor to check gateway configuration and connectivity.</p>
+                <p className="text-xs text-muted-foreground">Run Hermes doctor to check gateway configuration and connectivity.</p>
               </div>
             </div>
           </div>
@@ -173,7 +173,7 @@ function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplet
 
           {healthStatus?.healthy && (
             <div className="p-3 rounded-lg border border-green-500/30 bg-green-500/5 text-xs text-green-400">
-              OpenClaw is healthy and properly configured.
+              Hermes is healthy and properly configured.
             </div>
           )}
 
@@ -211,7 +211,7 @@ function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplet
         <div className="space-y-4">
           <div className="p-4 rounded-lg border border-green-500/30 bg-green-500/5 text-center space-y-2">
             <div className="text-2xl">+</div>
-            <p className="text-sm font-medium text-green-400">OpenClaw is ready</p>
+            <p className="text-sm font-medium text-green-400">Hermes is ready</p>
             <p className="text-xs text-muted-foreground">Gateway is configured and healthy. Agents can now connect.</p>
           </div>
 

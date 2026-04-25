@@ -4,7 +4,7 @@ import { requireRole } from '@/lib/auth'
 import { writeAgentToConfig, enrichAgentConfigFromWorkspace, removeAgentFromConfig } from '@/lib/agent-sync'
 import { eventBus } from '@/lib/event-bus'
 import { logger } from '@/lib/logger'
-import { runOpenClaw } from '@/lib/command'
+import { runHermes } from '@/lib/command'
 
 /**
  * GET /api/agents/[id] - Get a single agent by ID or name
@@ -49,7 +49,7 @@ export async function GET(
  *
  * Body: {
  *   role?: string
- *   gateway_config?: object   - OpenClaw agent config fields to update
+ *   gateway_config?: object   - Hermes agent config fields to update
  *   write_to_gateway?: boolean - Defaults to true when gateway_config exists
  * }
  */
@@ -91,9 +91,9 @@ export async function PUT(
       gateway_config &&
       (write_to_gateway === undefined || write_to_gateway === null || write_to_gateway === true)
     )
-    const openclawId = existingConfig.openclawId || agent.name.toLowerCase().replace(/\s+/g, '-')
+    const hermesId = existingConfig.hermesId || agent.name.toLowerCase().replace(/\s+/g, '-')
     const getWriteBackPayload = (source: Record<string, any>) => {
-      const writeBack: any = { id: openclawId }
+      const writeBack: any = { id: hermesId }
       if (source.model) writeBack.model = source.model
       if (source.identity) writeBack.identity = source.identity
       if (source.sandbox) writeBack.sandbox = source.sandbox
@@ -157,7 +157,7 @@ export async function PUT(
         actor_id: auth.user.id,
         target_type: 'agent',
         target_id: agent.id,
-        detail: { agent_name: agent.name, openclaw_id: openclawId, fields: Object.keys(gateway_config || {}) },
+        detail: { agent_name: agent.name, hermes_id: hermesId, fields: Object.keys(gateway_config || {}) },
         ip_address: ipAddress,
       })
     }
@@ -228,17 +228,17 @@ export async function DELETE(
 
     if (removeWorkspace) {
       const agentConfig = agent.config ? JSON.parse(agent.config) : {}
-      const openclawId =
-        String(agentConfig?.openclawId || agent.name || '')
+      const hermesId =
+        String(agentConfig?.hermesId || agent.name || '')
           .toLowerCase()
           .replace(/[^a-z0-9._-]+/g, '-')
           .replace(/^-+|-+$/g, '') || agent.name
       try {
-        await runOpenClaw(['agents', 'delete', openclawId, '--force'], { timeoutMs: 30000 })
+        await runHermes(['agents', 'delete', hermesId, '--force'], { timeoutMs: 30000 })
       } catch (err: any) {
-        logger.error({ err, openclawId, agent: agent.name }, 'Failed to remove OpenClaw agent/workspace')
+        logger.error({ err, hermesId, agent: agent.name }, 'Failed to remove Hermes agent/workspace')
         return NextResponse.json(
-          { error: `Failed to remove OpenClaw workspace for ${agent.name}: ${err?.message || 'unknown error'}` },
+          { error: `Failed to remove Hermes workspace for ${agent.name}: ${err?.message || 'unknown error'}` },
           { status: 502 }
         )
       }
@@ -247,15 +247,15 @@ export async function DELETE(
     let configCleanupWarning: string | null = null
     try {
       const agentConfig = agent.config ? JSON.parse(agent.config) : {}
-      const openclawId =
-        String(agentConfig?.openclawId || agent.name || '')
+      const hermesId =
+        String(agentConfig?.hermesId || agent.name || '')
           .toLowerCase()
           .replace(/[^a-z0-9._-]+/g, '-')
           .replace(/^-+|-+$/g, '') || agent.name
-      await removeAgentFromConfig({ id: openclawId, name: agent.name })
+      await removeAgentFromConfig({ id: hermesId, name: agent.name })
     } catch (err: any) {
-      configCleanupWarning = `OpenClaw config cleanup skipped for ${agent.name}: ${err?.message || 'unknown error'}`
-      logger.warn({ err, agent: agent.name }, 'Failed to remove OpenClaw agent config entry')
+      configCleanupWarning = `Hermes config cleanup skipped for ${agent.name}: ${err?.message || 'unknown error'}`
+      logger.warn({ err, agent: agent.name }, 'Failed to remove Hermes agent config entry')
     }
 
     db.prepare('DELETE FROM agents WHERE id = ? AND workspace_id = ?').run(agent.id, workspaceId)
