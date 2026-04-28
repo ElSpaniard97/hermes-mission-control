@@ -46,7 +46,7 @@ curl -X POST http://localhost:3000/api/agents/42/heartbeat \
   -d '{
     "connection_id": "550e8400-e29b-41d4-a716-446655440000",
     "token_usage": {
-      "model": "claude-sonnet-4",
+      "model": "gpt-5.3-codex",
       "inputTokens": 1500,
       "outputTokens": 800
     }
@@ -75,7 +75,7 @@ curl -X POST http://localhost:3000/api/tokens \
   -H "Content-Type: application/json" \
   -H "x-api-key: YOUR_API_KEY" \
   -d '{
-    "model": "claude-sonnet-4",
+    "model": "gpt-5.3-codex",
     "sessionId": "my-agent:chat",
     "inputTokens": 5000,
     "outputTokens": 2000

@@ -24,6 +24,13 @@ describe('MODEL_CATALOG', () => {
 })
 
 describe('getModelByAlias', () => {
+  it('finds the Codex primary model by alias', () => {
+    const model = getModelByAlias('codex')
+    expect(model).not.toBeUndefined()
+    expect(model!.name).toBe('gpt-5.3-codex')
+    expect(model!.provider).toBe('custom')
+  })
+
   it('finds model by alias', () => {
     const model = getModelByAlias('sonnet')
     expect(model).not.toBeUndefined()

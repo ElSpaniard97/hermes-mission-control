@@ -42,7 +42,7 @@ curl -X POST http://localhost:3000/api/agents \
     "status": "offline",
     "soul_content": "You are Aegis, the quality reviewer...",
     "config": {
-      "dispatchModel": "9router/cc/claude-opus-4-6",
+      "dispatchModel": "gpt-5.3-codex",
       "hermesId": "aegis"
     }
   }'
@@ -88,7 +88,7 @@ Agent directories are detected by the presence of marker files: `soul.md`, `AGEN
 ---
 name: my-agent
 description: A research assistant
-model: claude-opus-4
+model: gpt-5.3-codex
 tools: ["read", "write", "web-search"]
 ---
 You are a research assistant specializing in competitive analysis...
@@ -240,7 +240,7 @@ Each agent has a JSON `config` object stored in the database. Key fields:
 | Field | Type | Description |
 |-------|------|-------------|
 | `hermesId` | string | Gateway agent identifier (falls back to agent name) |
-| `dispatchModel` | string | Model override for auto-dispatch (e.g., `9router/cc/claude-opus-4-6`) |
+| `dispatchModel` | string | Model override for auto-dispatch (e.g., `gpt-5.3-codex`) |
 | `capabilities` | string[] | List of agent capabilities |
 | `framework` | string | Framework that created the agent (e.g., `claude-sdk`, `crewai`) |
 
@@ -249,7 +249,7 @@ Example config:
 ```json
 {
   "hermesId": "scout",
-  "dispatchModel": "9router/cc/claude-sonnet-4-6",
+  "dispatchModel": "gpt-5.3-codex",
   "capabilities": ["code-review", "testing", "documentation"],
   "framework": "claude-sdk"
 }
@@ -264,7 +264,7 @@ curl -X PUT http://localhost:3000/api/agents \
   -d '{
     "id": 1,
     "config": {
-      "dispatchModel": "9router/cc/claude-opus-4-6"
+      "dispatchModel": "gpt-5.3-codex"
     }
   }'
 ```
@@ -288,7 +288,7 @@ curl -X POST http://localhost:3000/api/agents/1/heartbeat \
   -H "Content-Type: application/json" \
   -d '{
     "token_usage": {
-      "model": "claude-sonnet-4-6",
+      "model": "gpt-5.3-codex",
       "inputTokens": 1500,
       "outputTokens": 300
     }

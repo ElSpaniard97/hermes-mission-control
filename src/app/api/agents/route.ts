@@ -267,12 +267,13 @@ export async function POST(request: NextRequest) {
         const profileDir = path.join(appConfig.homeDir, '.hermes', 'profiles', name)
         if (!fsExists(profileDir)) {
           mkdirSync(profileDir, { recursive: true })
-          // Write config.yaml with model from agent config or default
-          const model = finalConfig.model || 'claude-sonnet-4-6'
-          const provider = finalConfig.provider || 'anthropic'
+          // Write config.yaml with model from agent config or Codex primary default.
+          const model = finalConfig.model || 'gpt-5.3-codex'
+          const provider = finalConfig.provider || 'custom'
+          const baseUrl = finalConfig.base_url || finalConfig.baseUrl || 'https://api.openai.com/v1'
           writeFileSync(
             path.join(profileDir, 'config.yaml'),
-            `model: ${model}\nprovider: ${provider}\ntoolsets:\n- all\nmax_turns: 100\n`,
+            `model:\n  default: ${model}\n  provider: ${provider}\n  base_url: ${baseUrl}\n  api_mode: codex_responses\ntoolsets:\n- all\nmax_turns: 100\n`,
           )
           // Write SOUL.md if soul_content provided
           if (soul_content) {

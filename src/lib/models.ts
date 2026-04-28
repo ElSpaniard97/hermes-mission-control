@@ -7,6 +7,8 @@ export interface ModelConfig {
 }
 
 export const MODEL_CATALOG: ModelConfig[] = [
+  // Codex primary
+  { alias: 'codex', name: 'gpt-5.3-codex', provider: 'custom', description: 'Primary Hermes Codex model', costPer1k: 1.75 },
   // Anthropic
   { alias: 'haiku', name: 'anthropic/claude-haiku-4-5', provider: 'anthropic', description: 'Ultra-cheap, simple tasks', costPer1k: 0.25 },
   { alias: 'sonnet', name: 'anthropic/claude-sonnet-4-6', provider: 'anthropic', description: 'Standard workhorse', costPer1k: 3.0 },

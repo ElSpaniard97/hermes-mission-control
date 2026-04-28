@@ -8,6 +8,11 @@ describe('token pricing', () => {
     expect(cost).toBeCloseTo(0.002805, 9)
   })
 
+  it('uses separate input/output rates for GPT-5.3-Codex', () => {
+    const cost = calculateTokenCost('gpt-5.3-codex', 1000, 1000)
+    expect(cost).toBeCloseTo(0.01575, 9)
+  })
+
   it('matches model aliases by short model name', () => {
     const pricing = getModelPricing('gateway::claude-opus-4-6')
     expect(pricing.inputPerMTok).toBe(15.0)
@@ -33,6 +38,7 @@ describe('token pricing', () => {
 
   it('maps providers from model prefixes and names', () => {
     expect(getProviderFromModel('openai/gpt-4.1')).toBe('openai')
+    expect(getProviderFromModel('gpt-5.3-codex')).toBe('openai')
     expect(getProviderFromModel('anthropic/claude-sonnet-4-5')).toBe('anthropic')
     expect(getProviderFromModel('venice/llama-3.3-70b')).toBe('venice')
     expect(getProviderFromModel('gateway::codex-mini')).toBe('openai')
