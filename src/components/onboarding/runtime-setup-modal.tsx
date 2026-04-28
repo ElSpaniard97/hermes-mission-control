@@ -248,7 +248,7 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
           {(() => {
             const PROVIDERS = [
               { id: 'anthropic', label: 'Anthropic', hint: 'Claude', env: 'ANTHROPIC_API_KEY', hermesProvider: 'anthropic', models: ['claude-sonnet-4-6', 'claude-opus-4-6', 'claude-haiku-4-5', 'claude-sonnet-4-5'] },
-              { id: 'openai', label: 'OpenAI', hint: 'GPT / o-series / Codex', env: 'OPENAI_API_KEY', hermesProvider: 'custom', oauthHermesProvider: 'openai-codex', supportsDeviceCode: true, models: ['gpt-5.3-codex', 'codex-mini-latest', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano'] },
+              { id: 'openai', label: 'OpenAI', hint: 'GPT / o-series / Codex', env: 'OPENAI_API_KEY', hermesProvider: 'custom', oauthHermesProvider: 'openai-codex', supportsDeviceCode: true, models: ['gpt-5.3-codex', 'gpt-5.1-codex-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano'] },
               { id: 'openrouter', label: 'OpenRouter', hint: '200+ models', env: 'OPENROUTER_API_KEY', hermesProvider: 'openrouter', models: ['anthropic/claude-sonnet-4-6', 'openai/gpt-4.1', 'google/gemini-2.5-pro', 'meta-llama/llama-4-maverick', 'deepseek/deepseek-r1'] },
               { id: 'google', label: 'Google AI', hint: 'Gemini', env: 'GOOGLE_API_KEY', hermesProvider: 'google', models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'] },
               { id: 'nous', label: 'Nous Portal', hint: 'Free tier', env: 'NOUS_API_KEY', hermesProvider: 'nous', models: ['hermes-3-llama-3.1-70b', 'hermes-3-llama-3.1-8b', 'deephermes-3-llama-3.3-70b'] },

@@ -200,7 +200,7 @@ function classifyDirectModel(task: DispatchableTask): string {
     'translate', 'quick ', 'simple ', 'routine ', 'minor ',
   ]
   if (routineSignals.some(s => text.includes(s)) && priority !== 'high' && priority !== 'critical') {
-    return 'codex-mini-latest'
+    return 'gpt-5.1-codex-mini'
   }
 
   return 'gpt-5.3-codex'

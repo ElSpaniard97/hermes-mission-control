@@ -107,7 +107,7 @@ const SONNET_FALLBACKS = [
   'moonshot/kimi-k2-thinking',
   'openrouter/moonshotai/kimi-k2.5',
   'nvidia/moonshotai/kimi-k2-instruct',
-  'openai/codex-mini-latest',
+  'openai/gpt-5.1-codex-mini',
   'ollama/qwen2.5-coder:14b',
 ]
 
@@ -116,13 +116,13 @@ const OPUS_FALLBACKS = [
   'moonshot/kimi-k2-thinking',
   'nvidia/moonshotai/kimi-k2-instruct',
   'openrouter/moonshotai/kimi-k2.5',
-  'openai/codex-mini-latest',
+  'openai/gpt-5.1-codex-mini',
 ]
 
 const HAIKU_FALLBACKS = [
   'anthropic/claude-sonnet-4-20250514',
   'ollama/qwen2.5-coder:14b',
-  'openai/codex-mini-latest',
+  'openai/gpt-5.1-codex-mini',
 ]
 
 export const AGENT_TEMPLATES: AgentTemplate[] = [
@@ -187,7 +187,7 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
       },
       subagents: {
         allowAgents: [],
-        model: 'openai/codex-mini-latest',
+        model: 'openai/gpt-5.1-codex-mini',
       },
       sandbox: {
         mode: 'all',
@@ -230,7 +230,7 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
         emoji: '\u2699\ufe0f',
       },
       subagents: {
-        model: 'openai/codex-mini-latest',
+        model: 'openai/gpt-5.1-codex-mini',
       },
       sandbox: {
         mode: 'all',
