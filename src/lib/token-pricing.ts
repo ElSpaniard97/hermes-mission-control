@@ -11,6 +11,11 @@ const DEFAULT_MODEL_PRICING: ModelPricing = {
 }
 
 const MODEL_PRICING: Record<string, ModelPricing> = {
+  'gpt-5.3-codex': { inputPerMTok: 1.75, outputPerMTok: 14.0 },
+  'openai/gpt-5.3-codex': { inputPerMTok: 1.75, outputPerMTok: 14.0 },
+  'gpt-5.1-codex-mini': { inputPerMTok: 0.25, outputPerMTok: 2.0 },
+  'openai/gpt-5.1-codex-mini': { inputPerMTok: 0.25, outputPerMTok: 2.0 },
+
   'anthropic/claude-3-5-haiku-latest': { inputPerMTok: 0.8, outputPerMTok: 4.0 },
   'claude-3-5-haiku': { inputPerMTok: 0.8, outputPerMTok: 4.0 },
   'anthropic/claude-haiku-4-5': { inputPerMTok: 0.8, outputPerMTok: 4.0 },

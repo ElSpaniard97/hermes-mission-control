@@ -141,11 +141,11 @@ function parseAgentResponse(stdout: string): AgentResponseParsed {
 }
 
 // ---------------------------------------------------------------------------
-// Direct Claude API dispatch (gateway-free)
+// Direct Codex API dispatch (gateway-free)
 // ---------------------------------------------------------------------------
 
-function getAnthropicApiKey(): string | null {
-  return (process.env.ANTHROPIC_API_KEY || '').trim() || null
+function getOpenAIApiKey(): string | null {
+  return (process.env.OPENAI_API_KEY || '').trim() || null
 }
 
 function isGatewayAvailable(): boolean {
@@ -166,7 +166,7 @@ function classifyDirectModel(task: DispatchableTask): string {
     try {
       const cfg = JSON.parse(task.agent_config)
       if (typeof cfg.dispatchModel === 'string' && cfg.dispatchModel) {
-        // Strip gateway prefixes like "9router/cc/" to get bare model ID
+        // Strip gateway/provider prefixes to get the bare OpenAI model ID.
         return cfg.dispatchModel.replace(/^.*\//, '')
       }
     } catch { /* ignore */ }
@@ -175,35 +175,35 @@ function classifyDirectModel(task: DispatchableTask): string {
   const text = `${task.title} ${task.description ?? ''}`.toLowerCase()
   const priority = task.priority?.toLowerCase() ?? ''
 
-  // Complex → Opus
+  // Keep direct dispatch on the primary Codex model. The gateway path can still
+  // route per-agent overrides when operators need a cheaper or specialized tier.
   const complexSignals = [
     'debug', 'diagnos', 'architect', 'design system', 'security audit',
     'root cause', 'investigate', 'incident', 'refactor', 'migration',
   ]
   if (priority === 'critical' || complexSignals.some(s => text.includes(s))) {
-    return 'claude-opus-4-6'
+    return 'gpt-5.3-codex'
   }
 
-  // Size heuristics → Opus for large/complex tasks
+  // Size heuristics → primary Codex for large/complex tasks
   const descLength = (task.description ?? '').length
-  if (descLength > 2000) return 'claude-opus-4-6'
+  if (descLength > 2000) return 'gpt-5.3-codex'
   try {
     const db = getDatabase()
     const row = db.prepare('SELECT estimated_hours FROM tasks WHERE id = ?').get(task.id) as { estimated_hours: number | null } | undefined
-    if (row?.estimated_hours && row.estimated_hours >= 4) return 'claude-opus-4-6'
+    if (row?.estimated_hours && row.estimated_hours >= 4) return 'gpt-5.3-codex'
   } catch { /* ignore */ }
 
-  // Routine → Haiku
+  // Routine → smaller Codex model
   const routineSignals = [
     'status check', 'health check', 'format', 'rename', 'summarize',
     'translate', 'quick ', 'simple ', 'routine ', 'minor ',
   ]
   if (routineSignals.some(s => text.includes(s)) && priority !== 'high' && priority !== 'critical') {
-    return 'claude-haiku-4-5-20251001'
+    return 'gpt-5.1-codex-mini'
   }
 
-  // Default → Sonnet
-  return 'claude-sonnet-4-6'
+  return 'gpt-5.3-codex'
 }
 
 function getAgentSoulContent(task: DispatchableTask): string | null {
@@ -218,56 +218,57 @@ function getAgentSoulContent(task: DispatchableTask): string | null {
   }
 }
 
-async function callClaudeDirectly(
+function extractResponsesText(data: any): string | null {
+  if (typeof data?.output_text === 'string' && data.output_text.trim()) {
+    return data.output_text
+  }
+  const chunks: string[] = []
+  for (const item of data?.output || []) {
+    for (const part of item?.content || []) {
+      if (typeof part?.text === 'string') chunks.push(part.text)
+    }
+  }
+  return chunks.length > 0 ? chunks.join('\n') : null
+}
+
+async function callCodexDirectly(
   task: DispatchableTask,
   prompt: string,
 ): Promise<AgentResponseParsed> {
-  const apiKey = getAnthropicApiKey()
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set — cannot dispatch without gateway')
+  const apiKey = getOpenAIApiKey()
+  if (!apiKey) throw new Error('OPENAI_API_KEY not set — cannot dispatch without gateway')
 
   const model = classifyDirectModel(task)
   const soul = getAgentSoulContent(task)
 
-  const messages: Array<{ role: string; content: string }> = [
-    { role: 'user', content: prompt },
-  ]
-
   const body: Record<string, unknown> = {
     model,
-    max_tokens: 4096,
-    messages,
+    input: prompt,
+    max_output_tokens: 4096,
   }
 
   if (soul) {
-    body.system = soul
+    body.instructions = soul
   }
 
-  logger.info({ taskId: task.id, model, agent: task.agent_name }, 'Dispatching task via direct Claude API')
+  logger.info({ taskId: task.id, model, agent: task.agent_name }, 'Dispatching task via direct Codex API')
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(body),
   })
 
   if (!res.ok) {
     const errorBody = await res.text().catch(() => '')
-    throw new Error(`Claude API ${res.status}: ${errorBody.substring(0, 500)}`)
+    throw new Error(`OpenAI Responses API ${res.status}: ${errorBody.substring(0, 500)}`)
   }
 
-  const data = await res.json() as {
-    content: Array<{ type: string; text?: string }>
-    usage?: { input_tokens?: number; output_tokens?: number }
-  }
-
-  const text = data.content
-    ?.filter((b: { type: string }) => b.type === 'text')
-    .map((b: { text?: string }) => b.text || '')
-    .join('\n') || null
+  const data = await res.json()
+  const text = extractResponsesText(data)
 
   // Record token usage
   if (data.usage) {
@@ -280,7 +281,7 @@ async function callClaudeDirectly(
       `).run(
         model,
         `task-${task.id}`,
-        data.usage.input_tokens || 0,
+        data.usage.input_tokens || data.usage.input_tokens_details?.total_tokens || 0,
         data.usage.output_tokens || 0,
         (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0),
         0, // cost calculated separately
@@ -403,8 +404,8 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
       const prompt = buildReviewPrompt(task)
       let agentResponse: AgentResponseParsed
 
-      if (!isGatewayAvailable() && getAnthropicApiKey()) {
-        // Direct Claude API review — no gateway needed
+      if (!isGatewayAvailable() && getOpenAIApiKey()) {
+        // Direct Codex API review — no gateway needed
         const reviewTask: DispatchableTask = {
           id: task.id, title: task.title, description: task.description,
           status: 'quality_review', priority: 'high', assigned_to: 'aegis',
@@ -412,7 +413,7 @@ export async function runAegisReviews(): Promise<{ ok: boolean; message: string 
           agent_config: null, ticket_prefix: task.ticket_prefix,
           project_ticket_no: task.project_ticket_no, project_id: null,
         }
-        agentResponse = await callClaudeDirectly(reviewTask, prompt)
+        agentResponse = await callCodexDirectly(reviewTask, prompt)
       } else {
         // Resolve the gateway agent ID from config, falling back to assigned_to or default
         const reviewAgent = resolveGatewayAgentIdForReview(task)
@@ -695,11 +696,11 @@ export async function dispatchAssignedTasks(): Promise<{ ok: boolean; message: s
         : null
 
       let agentResponse: AgentResponseParsed
-      const useDirectApi = !isGatewayAvailable() && getAnthropicApiKey()
+      const useDirectApi = !isGatewayAvailable() && getOpenAIApiKey()
 
       if (useDirectApi && !targetSession) {
-        // Direct Claude API dispatch — no gateway needed
-        agentResponse = await callClaudeDirectly(task, prompt)
+        // Direct Codex API dispatch — no gateway needed
+        agentResponse = await callCodexDirectly(task, prompt)
       } else if (targetSession) {
         // Dispatch to a specific existing session via chat.send
         logger.info({ taskId: task.id, targetSession, agent: task.agent_name }, 'Dispatching task to targeted session')

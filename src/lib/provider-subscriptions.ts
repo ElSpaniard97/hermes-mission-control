@@ -214,15 +214,14 @@ export function getProviderFromModel(modelName: string): string {
   if (!normalized) return 'unknown'
 
   const [prefix] = normalized.split('/')
-  if (prefix && !prefix.includes(':')) {
+  if (normalized.includes('/') && prefix && !prefix.includes(':')) {
     // Most models are provider-prefixed, e.g., "anthropic/claude-sonnet-4-5".
     if (prefix === 'claude') return 'anthropic'
-    if (prefix === 'gpt' || prefix === 'o1' || prefix === 'o3') return 'openai'
+    if (prefix === 'gpt' || prefix === 'o1' || prefix === 'o3' || prefix === 'o4') return 'openai'
     return prefix
   }
 
   if (normalized.includes('claude')) return 'anthropic'
-  if (normalized.includes('gpt') || normalized.includes('codex') || normalized.includes('o1') || normalized.includes('o3')) return 'openai'
+  if (normalized.includes('gpt') || normalized.includes('codex') || normalized.includes('o1') || normalized.includes('o3') || normalized.includes('o4')) return 'openai'
   return 'unknown'
 }
-
