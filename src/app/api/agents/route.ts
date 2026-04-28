@@ -273,7 +273,7 @@ export async function POST(request: NextRequest) {
           const baseUrl = finalConfig.base_url || finalConfig.baseUrl || 'https://api.openai.com/v1'
           writeFileSync(
             path.join(profileDir, 'config.yaml'),
-            `model:\n  default: ${model}\n  provider: ${provider}\n  base_url: ${baseUrl}\n  api_mode: codex_responses\ntoolsets:\n- all\nmax_turns: 100\n`,
+            `model:\n  default: ${model}\n  provider: ${provider}\n  base_url: ${baseUrl}\n  api_mode: codex_responses\n  context_length: 64000\nfallback_providers:\n- provider: custom\n  model: gpt-5.1-codex-mini\n  base_url: https://api.openai.com/v1\n  key_env: OPENAI_API_KEY\nagent:\n  max_turns: 100\n  max_tokens: 8192\ncompression:\n  enabled: true\n  threshold: 0.45\n  target_ratio: 0.15\ntoolsets:\n- all\n`,
           )
           // Write SOUL.md if soul_content provided
           if (soul_content) {
